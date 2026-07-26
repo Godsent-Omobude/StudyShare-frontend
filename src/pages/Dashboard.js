@@ -19,7 +19,7 @@ export default function Dashboard() {
   const fetchFiles = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/files', {
+      const res = await axios.get('https://studyshare-backend-o7jr.onrender.com/api/files', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFiles(res.data);
@@ -47,7 +47,7 @@ export default function Dashboard() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/files/upload', formData, {
+      await axios.post('https://studyshare-backend-o7jr.onrender.com/api/files/upload', formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -65,7 +65,7 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios({
-        url: `http://localhost:5000/api/files/download/${fileId}`,
+        url: `https://studyshare-backend-o7jr.onrender.com/api/files/download/${fileId}`,
         method: 'GET',
         responseType: 'blob', 
         headers: { Authorization: `Bearer ${token}` }
