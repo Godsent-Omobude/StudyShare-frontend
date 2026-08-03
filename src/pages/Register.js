@@ -1,99 +1,160 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../api/api";
 
 export default function Register() {
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError('');
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    setError("");
 
-    if (!username.toUpperCase().startsWith('BMS')) {
-      setError('Access denied: Invalid matriculation number.');
+    if (!username.toUpperCase().startsWith("BMS")) {
+      setError("Access denied: Invalid matriculation number.");
       return;
     }
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, { fullName, username, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('fullName', res.data.fullName);
-      navigate('/');
+      setLoading(true);
+
+      const response = await api.post("/auth/register", {
+        fullName,
+        username,
+        password,
+      });
+
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem(
+          "fullName",
+          response.data.fullName || fullName
+        );
+        localStorage.setItem("username", username);
+        navigate("/");
+      } else {
+        navigate("/login");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failure.');
+      setError(
+        err.response?.data?.message || "Registration failure."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative bg-gradient-to-b from-brand-light to-white overflow-hidden">
-      <div 
-        className="absolute inset-0 opacity-5 pointer-events-none bg-center bg-no-repeat bg-contain transform scale-75"
-        style={{ backgroundImage: "url('/nambs-logo.png')" }}
-      />
+    <div className="min-h-screen bg-[#07152f] px-4 py-10">
+      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
+        <div className="grid w-full overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-2">
+          <div className="hidden bg-gradient-to-br from-[#07152f] to-violet-700 p-12 text-white lg:block">
+            <div className="text-3xl font-black">
+              Study<span className="text-violet-300">Share</span>
+            </div>
+            <div className="mt-24">
+              <p className="text-sm font-bold uppercase tracking-widest text-violet-200">
+                Join your academic workspace
+              </p>
+              <h1 className="mt-4 text-5xl font-black leading-tight">
+                Your notes. Your flashcards. Your study space.
+              </h1>
+              <p className="mt-5 max-w-md text-slate-200">
+                Create an account to access your shared materials and saved
+                AI-generated flashcards.
+              </p>
+            </div>
+          </div>
 
-      <div className="sm:mx-auto w-full max-w-md z-10">
+          <div className="p-7 sm:p-10 lg:p-12">
+            <div className="mx-auto max-w-md">
+              <h2 className="text-3xl font-black text-slate-900">
+                Create account
+              </h2>
+              <p className="mt-2 text-sm text-slate-500">
+                Set up your StudyShare student account.
+              </p>
+
+              <div className="sm:mx-auto w-full max-w-md z-10">
         <h2 className="text-center text-4xl font-black text-brand-dark tracking-tight">StudyShare</h2>
         <p className="mt-2 text-center text-sm text-slate-500 font-medium px-4">
           AN INITIATIVE BY THE PIONEER VICE PRESIDENT OF NAMBS—Godsent Omobude
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto w-full max-w-md z-10 px-4">
-        <div className="bg-white py-8 px-6 shadow-xl rounded-2xl border border-slate-100">
-          <h3 className="text-lg font-bold text-slate-800 mb-6">Student Registration</h3>
-          {error && (
-            <div className="mb-4 p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-lg">
-              ⚠️ {error}
+              {error && (
+                <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleRegister} className="mt-7 space-y-5">
+                <div>
+                  <label className="text-sm font-bold text-slate-700">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="John Doe"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-violet-500 focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-slate-700">
+                    Matriculation Number
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="BMS2024..."
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-violet-500 focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-slate-700">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-violet-500 focus:bg-white"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-xl bg-violet-600 py-3.5 text-sm font-black text-white shadow-lg shadow-violet-200 hover:bg-violet-700 disabled:opacity-60"
+                >
+                  {loading ? "Creating..." : "Register & Setup"}
+                </button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-slate-500">
+                Already registered?{" "}
+                <Link
+                  to="/login"
+                  className="font-bold text-violet-700 hover:underline"
+                >
+                  Log in
+                </Link>
+              </p>
             </div>
-          )}
-          <form className="space-y-5" onSubmit={handleRegister}>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 tracking-wide uppercase">Full Name</label>
-              <input
-                type="text"
-                placeholder="John Doe"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="mt-1 block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 tracking-wide uppercase">Matriculation Number</label>
-              <input
-                type="text"
-                placeholder="Must start with BMS"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 tracking-wide uppercase">Password</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-brand-blue hover:bg-brand-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition duration-150"
-            >
-              Register & Setup
-            </button>
-          </form>
-          <div className="mt-6 text-center text-xs">
-            <span className="text-slate-500">Already registered? </span>
-            <Link to="/login" className="font-bold text-brand-blue hover:underline">Log In</Link>
           </div>
         </div>
       </div>

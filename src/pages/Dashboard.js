@@ -1,212 +1,412 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import Navbar from '../components/Navbar';
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import api from "../api/api";
+import FlashcardSetCard from "../components/FlashcardSetCard";
 
 export default function Dashboard() {
   const [files, setFiles] = useState([]);
-  const [search, setSearch] = useState('');
-  const [filterType, setFilterType] = useState('All');
-  const userName = localStorage.getItem('fullName');
+  const [flashcardSets, setFlashcardSets] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("All");
 
-  // Form states
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [courseCode, setCourseCode] = useState('');
-  const [type, setType] = useState('Material');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [courseCode, setCourseCode] = useState("");
+  const [type, setType] = useState("Material");
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadMsg, setUploadMsg] = useState({ text: '', isError: false });
+  const [uploadMsg, setUploadMsg] = useState({ text: "", isError: false });
+
+  const userName = localStorage.getItem("fullName") || "Student";
 
   const fetchFiles = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('https://studyshare-backend-o7jr.onrender.com/api/files', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setFiles(res.data);
-    } catch (err) {
-      console.error("Error fetching files repository.");
+      const response = await api.get("/files");
+      setFiles(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Unable to fetch files.", error);
     }
   };
 
-  useEffect(() => { fetchFiles(); }, []);
+  const fetchFlashcards = async () => {
+    try {
+      const response = await api.get("/flashcards");
+      setFlashcardSets(
+        Array.isArray(response.data) ? response.data.slice(0, 4) : []
+      );
+    } catch (error) {
+      console.error("Unable to fetch flashcard sets.", error);
+    }
+  };
 
-  const handleUploadSubmit = async (e) => {
-    e.preventDefault();
-    setUploadMsg({ text: '', isError: false });
+  useEffect(() => {
+    fetchFiles();
+    fetchFlashcards();
+  }, []);
+
+  const handleUploadSubmit = async (event) => {
+    event.preventDefault();
+    setUploadMsg({ text: "", isError: false });
+
     if (!selectedFile) {
-      setUploadMsg({ text: 'Please choose a physical file to upload.', isError: true });
+      setUploadMsg({
+        text: "Please choose a file to upload.",
+        isError: true,
+      });
       return;
     }
 
     const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('courseCode', courseCode);
-    formData.append('type', type);
-    formData.append('file', selectedFile);
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("courseCode", courseCode);
+    formData.append("type", type);
+    formData.append("file", selectedFile);
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post('https://studyshare-backend-o7jr.onrender.com/api/files/upload', formData, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
+      await api.post("/files/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-      setUploadMsg({ text: 'Resource uploaded successfully!', isError: false });
-      setTitle(''); setDescription(''); setCourseCode(''); setSelectedFile(null);
+
+      setUploadMsg({
+        text: "Resource uploaded successfully.",
+        isError: false,
+      });
+
+      setTitle("");
+      setDescription("");
+      setCourseCode("");
+      setSelectedFile(null);
+
+      const input = document.getElementById("material-file");
+      if (input) input.value = "";
+
       fetchFiles();
-    } catch (err) {
-      setUploadMsg({ text: err.response?.data?.message || 'Upload failed.', isError: true });
+    } catch (error) {
+      setUploadMsg({
+        text: error.response?.data?.message || "Upload failed.",
+        isError: true,
+      });
     }
   };
 
   const handleDownload = async (fileId, originalName) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios({
-        url: `https://studyshare-backend-o7jr.onrender.com/api/files/download/${fileId}`,
-        method: 'GET',
-        responseType: 'blob', 
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await api.get(`/files/download/${fileId}`, {
+        responseType: "blob",
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
+
       link.href = url;
-      link.setAttribute('download', originalName);
+      link.download = originalName || "study-material";
       document.body.appendChild(link);
       link.click();
       link.remove();
-      fetchFiles(); // Dynamic incremental counter update
-    } catch (err) {
-      alert("Unauthorized or corrupt download token.");
+      window.URL.revokeObjectURL(url);
+
+      fetchFiles();
+    } catch (error) {
+      window.alert(
+        error.response?.data?.message || "Unable to download this file."
+      );
     }
   };
 
-  const filteredFiles = files.filter(f => {
-    const matchesSearch = f.title.toLowerCase().includes(search.toLowerCase()) || 
-                          (f.courseCode && f.courseCode.toLowerCase().includes(search.toLowerCase()));
-    const matchesFilter = filterType === 'All' || f.type === filterType;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredFiles = useMemo(() => {
+    const term = search.toLowerCase();
+
+    return files.filter((file) => {
+      const title = String(file.title || "").toLowerCase();
+      const courseCode = String(file.courseCode || "").toLowerCase();
+
+      const matchesSearch =
+        title.includes(term) || courseCode.includes(term);
+
+      const matchesFilter =
+        filterType === "All" || file.type === filterType;
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [files, search, filterType]);
 
   return (
-    <div className="min-h-screen bg-brand-light">
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Banner Greeting */}
-        <div className="bg-gradient-to-r from-brand-dark to-brand-blue rounded-2xl p-8 text-white shadow-lg mb-8">
-          <h1 className="text-3xl font-black">Welcome, {userName}!</h1>
-          <p className="text-blue-100 mt-1 text-sm font-medium">Access and collaborate within your verified academic repository.</p>
-        </div>
+    <main className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <section className="mb-6 grid gap-4 lg:grid-cols-3">
+          <div className="rounded-2xl border border-violet-100 bg-violet-50 p-5">
+            <p className="text-2xl">✦</p>
+            <h2 className="mt-3 font-black text-slate-900">AI Flashcards</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Turn your study materials into revision cards.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Upload Side Panel */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-md h-fit">
-            <h2 className="text-lg font-black text-brand-dark mb-4">Contribute Resources</h2>
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+            <p className="text-2xl">▤</p>
+            <h2 className="mt-3 font-black text-slate-900">Save & Study</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Save generated sets and study them whenever you need.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+            <p className="text-2xl">↗</p>
+            <h2 className="mt-3 font-black text-slate-900">Better Learning</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Revise more actively from your own academic materials.
+            </p>
+          </div>
+        </section>
+
+        <section className="mb-6 rounded-3xl bg-gradient-to-r from-[#07152f] to-violet-700 p-6 text-white shadow-xl sm:p-8">
+          <p className="text-sm font-semibold text-violet-200">WELCOME BACK</p>
+          <h1 className="mt-1 text-3xl font-black">
+            Welcome, {userName}!
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-slate-200">
+            Your academic workspace for sharing materials, generating
+            flashcards and studying smarter.
+          </p>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              to="/generate-flashcards"
+              className="rounded-xl bg-white px-5 py-3 text-sm font-black text-violet-700 hover:bg-violet-50"
+            >
+              ✦ Generate Flashcards
+            </Link>
+            <Link
+              to="/my-flashcards"
+              className="rounded-xl border border-white/30 px-5 py-3 text-sm font-bold text-white hover:bg-white/10"
+            >
+              My Flashcards
+            </Link>
+          </div>
+        </section>
+
+        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-black text-slate-900">
+              Upload Material
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Add a resource to the StudyShare repository.
+            </p>
+
             {uploadMsg.text && (
-              <div className={`mb-4 p-3 rounded-xl text-xs font-semibold ${uploadMsg.isError ? 'bg-red-50 border border-red-100 text-red-700' : 'bg-emerald-50 border border-emerald-100 text-emerald-700'}`}>
+              <div
+                className={`mt-4 rounded-xl border p-3 text-sm font-semibold ${
+                  uploadMsg.isError
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                }`}
+              >
                 {uploadMsg.text}
               </div>
             )}
-            <form onSubmit={handleUploadSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase">Resource Title</label>
-                <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Cell Chemistry Lecture Note"/>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase">Course Code</label>
-                <input type="text" value={courseCode} onChange={(e) => setCourseCode(e.target.value)} className="mt-1 w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="e.g. MBC213"/>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase">Category Type</label>
-                <select value={type} onChange={(e) => setType(e.target.value)} className="mt-1 w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                  <option value="Material">Lecture Material</option>
-                  <option value="Past Question">Past Question Paper</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase">Description</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" rows="2" placeholder="Brief outline..."></textarea>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase">Select File</label>
-                <input type="file" required onChange={(e) => setSelectedFile(e.target.files[0])} className="mt-1 text-xs block w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-brand-blue hover:file:bg-blue-100" />
-              </div>
-              <button type="submit" className="w-full bg-brand-blue text-white py-2.5 rounded-xl font-bold hover:bg-brand-accent transition shadow-md text-sm">
+
+            <form onSubmit={handleUploadSubmit} className="mt-5 space-y-4">
+              <input
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Resource title"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-500 focus:bg-white"
+              />
+
+              <input
+                type="text"
+                value={courseCode}
+                onChange={(e) => setCourseCode(e.target.value)}
+                placeholder="Course code e.g. MBC201"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-500 focus:bg-white"
+              />
+
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-500 focus:bg-white"
+              >
+                <option value="Material">Lecture Material</option>
+                <option value="Past Question">Past Question Paper</option>
+              </select>
+
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows="3"
+                placeholder="Short description"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-500 focus:bg-white"
+              />
+
+              <input
+                id="material-file"
+                type="file"
+                required
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                className="block w-full text-xs text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:font-bold file:text-violet-700"
+              />
+
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-violet-600 py-3 text-sm font-black text-white shadow-lg shadow-violet-100 hover:bg-violet-700"
+              >
                 Publish Document
               </button>
             </form>
-          </div>
+          </section>
 
-          {/* Directory Repository Grid */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <input 
-                type="text" 
-                placeholder="Search by title, course code..." 
-                value={search} 
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full sm:w-2/3 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              />
-              <div className="flex gap-2 w-full sm:w-auto">
-                {['All', 'Material', 'Past Question'].map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setFilterType(t)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${filterType === t ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                  >
-                    {t === 'All' ? 'All Files' : t}
-                  </button>
+          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black text-slate-900">
+                  My Flashcard Sets
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Your latest saved AI-generated sets.
+                </p>
+              </div>
+              <Link
+                to="/my-flashcards"
+                className="whitespace-nowrap rounded-xl border border-violet-200 px-3 py-2 text-xs font-bold text-violet-700 hover:bg-violet-50"
+              >
+                View All →
+              </Link>
+            </div>
+
+            {flashcardSets.length ? (
+              <div className="space-y-3">
+                {flashcardSets.map((set) => (
+                  <FlashcardSetCard
+                    key={set.id}
+                    set={set}
+                    onDelete={async (id) => {
+                      try {
+                        await api.delete(`/flashcards/${id}`);
+                        fetchFlashcards();
+                      } catch (error) {
+                        window.alert(
+                          error.response?.data?.message ||
+                            "Unable to delete flashcard set."
+                        );
+                      }
+                    }}
+                  />
                 ))}
               </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
+                <p className="font-bold text-slate-700">
+                  No flashcard sets yet.
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  Generate one from your study material.
+                </p>
+                <Link
+                  to="/generate-flashcards"
+                  className="mt-4 inline-block rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-bold text-white"
+                >
+                  Generate Now
+                </Link>
+              </div>
+            )}
+          </section>
+        </div>
+
+        <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-xl font-black text-slate-900">
+                Academic Materials
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Search and download resources shared in your repository.
+              </p>
             </div>
 
-            {/* Document Collection cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredFiles.length > 0 ? (
-                filteredFiles.map((file) => (
-                  <div key={file._id} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start mb-2">
-                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${file.type === 'Material' ? 'bg-blue-50 text-brand-blue' : 'bg-purple-50 text-purple-700'}`}>
-                          {file.type}
+            <input
+              type="text"
+              placeholder="Search title or course code..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-500 lg:max-w-sm"
+            />
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {["All", "Material", "Past Question"].map((value) => (
+              <button
+                key={value}
+                onClick={() => setFilterType(value)}
+                className={`rounded-lg px-3 py-2 text-xs font-bold ${
+                  filterType === value
+                    ? "bg-violet-600 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {value === "All" ? "All Files" : value}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {filteredFiles.length ? (
+              filteredFiles.map((file) => {
+                const fileId = file.id ?? file._id;
+                const filename =
+                  file.filename || file.originalname || file.title;
+
+                return (
+                  <article
+                    key={fileId}
+                    className="rounded-2xl border border-slate-200 p-5 transition hover:shadow-md"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="rounded-md bg-violet-50 px-2.5 py-1 text-[10px] font-black uppercase text-violet-700">
+                        {file.type || "Material"}
+                      </span>
+                      {file.courseCode && (
+                        <span className="rounded bg-slate-50 px-2 py-1 text-xs font-bold text-slate-400">
+                          {file.courseCode}
                         </span>
-                        {file.courseCode && (
-                          <span className="text-xs font-mono font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded">
-                            {file.courseCode}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="font-bold text-slate-900 leading-tight mb-1">{file.title}</h3>
-                      <p className="text-xs text-slate-500 line-clamp-2 mb-3">{file.description || 'No contextual details provided.'}</p>
+                      )}
                     </div>
-                    <div className="pt-4 border-t border-slate-50 flex items-center justify-between mt-auto">
-                      <div className="text-[11px] text-slate-400">
-                        <p>By: <span className="font-medium text-slate-600">{file.uploaderName}</span></p>
-                        <p>Downloads: <span className="font-bold text-brand-blue">{file.downloads}</span></p>
-                      </div>
-                      <button 
-                        onClick={() => handleDownload(file._id, file.filename)}
-                        className="bg-brand-light hover:bg-blue-100 text-brand-blue text-xs font-bold px-3 py-2 rounded-lg transition"
+
+                    <h3 className="mt-3 font-bold text-slate-900">
+                      {file.title || filename}
+                    </h3>
+
+                    <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+                      {file.description || "No description provided."}
+                    </p>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+                      <span className="text-xs text-slate-400">
+                        Downloads: {file.downloads ?? 0}
+                      </span>
+
+                      <button
+                        onClick={() => handleDownload(fileId, filename)}
+                        className="rounded-lg bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700 hover:bg-violet-100"
                       >
-                        ⬇️ Download
+                        ↓ Download
                       </button>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-2 text-center py-12 text-slate-400 font-medium bg-white rounded-2xl border border-dashed border-slate-200">
-                  No matching workspace academic documents found.
-                </div>
-              )}
-            </div>
-
+                  </article>
+                );
+              })
+            ) : (
+              <div className="md:col-span-2 rounded-2xl border border-dashed border-slate-300 p-10 text-center text-sm font-medium text-slate-400">
+                No matching academic materials found.
+              </div>
+            )}
           </div>
-        </div>
-      </main>
-    </div>
+        </section>
+      </div>
+    </main>
   );
 }

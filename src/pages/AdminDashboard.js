@@ -1,0 +1,943 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import axios from "axios";
+
+const API_URL = (() => {
+  const configured = (process.env.REACT_APP_API_URL || "https://studyshare-backend-o7jr.onrender.com").replace(/\/$/, "");
+  return configured.endsWith("/api") ? configured : `${configured}/api`;
+})();
+
+export default function AdminDashboard() {
+  const [activeSection, setActiveSection] = useState("overview");
+
+  const [stats, setStats] = useState(null);
+  const [recentUsers, setRecentUsers] = useState([]);
+  const [recentFiles, setRecentFiles] = useState([]);
+
+  const [users, setUsers] = useState([]);
+  const [files, setFiles] = useState([]);
+
+  const [userSearch, setUserSearch] = useState("");
+  const [fileSearch, setFileSearch] = useState("");
+
+  const [adminInfo, setAdminInfo] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+  const [sectionLoading, setSectionLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState("");
+
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  const token = localStorage.getItem("token");
+
+  const authConfig = useMemo(
+    () => ({
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+    [token]
+  );
+
+  const clearMessages = useCallback(() => {
+    setMessage("");
+    setError("");
+  }, []);
+
+  const handleApiError = useCallback((err, fallback) => {
+    console.error(err);
+
+    if (err.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      window.location.href = "/login";
+      return;
+    }
+
+    if (err.response?.status === 403) {
+      setError("Access denied. Your account is no longer an administrator.");
+      return;
+    }
+
+    setError(err.response?.data?.message || fallback);
+  }, []);
+
+  const loadStats = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${API_URL}/admin/stats`,
+        authConfig
+      );
+
+      setStats(res.data.stats);
+      setRecentUsers(res.data.recentUsers || []);
+      setRecentFiles(res.data.recentFiles || []);
+    } catch (err) {
+      handleApiError(err, "Unable to load administrator statistics.");
+    }
+  }, [authConfig, handleApiError]);
+
+  const verifyAdmin = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${API_URL}/admin/check`,
+        authConfig
+      );
+
+      setAdminInfo(res.data.user);
+    } catch (err) {
+      handleApiError(err, "Unable to verify administrator access.");
+    }
+  }, [authConfig, handleApiError]);
+
+  const loadUsers = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${API_URL}/admin/users`,
+        authConfig
+      );
+
+      setUsers(res.data.users || []);
+    } catch (err) {
+      handleApiError(err, "Unable to load users.");
+    }
+  }, [authConfig, handleApiError]);
+
+  const loadFiles = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${API_URL}/admin/files`,
+        authConfig
+      );
+
+      setFiles(res.data.files || []);
+    } catch (err) {
+      handleApiError(err, "Unable to load uploaded files.");
+    }
+  }, [authConfig, handleApiError]);
+
+  const loadDashboard = useCallback(async () => {
+    clearMessages();
+    setLoading(true);
+
+    try {
+      await Promise.all([
+        verifyAdmin(),
+        loadStats(),
+        loadUsers(),
+        loadFiles(),
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }, [clearMessages, verifyAdmin, loadStats, loadUsers, loadFiles]);
+
+  useEffect(() => {
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
+    loadDashboard();
+  }, [token, loadDashboard]);
+
+  const openSection = async (section) => {
+    clearMessages();
+    setActiveSection(section);
+
+    if (section === "users" && users.length === 0) {
+      setSectionLoading(true);
+      await loadUsers();
+      setSectionLoading(false);
+    }
+
+    if (section === "files" && files.length === 0) {
+      setSectionLoading(true);
+      await loadFiles();
+      setSectionLoading(false);
+    }
+  };
+
+  const changeRole = async (user) => {
+    const newRole = user.role === "admin" ? "student" : "admin";
+
+    const action =
+      newRole === "admin"
+        ? `make ${user.username} an administrator`
+        : `remove administrator access from ${user.username}`;
+
+    if (!window.confirm(`Are you sure you want to ${action}?`)) {
+      return;
+    }
+
+    clearMessages();
+    setActionLoading(`role-${user.id}`);
+
+    try {
+      const res = await axios.patch(
+        `${API_URL}/admin/users/${user.id}/role`,
+        { role: newRole },
+        authConfig
+      );
+
+      setMessage(res.data.message || "User role updated successfully.");
+
+      await Promise.all([loadUsers(), loadStats()]);
+    } catch (err) {
+      handleApiError(err, "Unable to update user role.");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  const deleteUser = async (user) => {
+    if (
+      !window.confirm(
+        `Delete ${user.fullName} (${user.username})? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    clearMessages();
+    setActionLoading(`delete-user-${user.id}`);
+
+    try {
+      const res = await axios.delete(
+        `${API_URL}/admin/users/${user.id}`,
+        authConfig
+      );
+
+      setMessage(res.data.message || "User deleted successfully.");
+
+      await Promise.all([loadUsers(), loadStats()]);
+    } catch (err) {
+      handleApiError(err, "Unable to delete user.");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  const deleteFile = async (file) => {
+    if (
+      !window.confirm(
+        `Delete "${file.title || file.filename}"? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    clearMessages();
+    setActionLoading(`delete-file-${file.id}`);
+
+    try {
+      const res = await axios.delete(
+        `${API_URL}/admin/files/${file.id}`,
+        authConfig
+      );
+
+      setMessage(res.data.message || "File deleted successfully.");
+
+      await Promise.all([loadFiles(), loadStats()]);
+    } catch (err) {
+      handleApiError(err, "Unable to delete file.");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  const filteredUsers = useMemo(() => {
+    const query = userSearch.trim().toLowerCase();
+
+    if (!query) return users;
+
+    return users.filter((user) =>
+      [
+        user.fullName,
+        user.username,
+        user.role,
+      ].some((value) =>
+        String(value || "").toLowerCase().includes(query)
+      )
+    );
+  }, [users, userSearch]);
+
+  const filteredFiles = useMemo(() => {
+    const query = fileSearch.trim().toLowerCase();
+
+    if (!query) return files;
+
+    return files.filter((file) =>
+      [
+        file.title,
+        file.filename,
+        file.courseCode,
+        file.type,
+        file.uploaderName,
+        file.user?.fullName,
+        file.user?.username,
+      ].some((value) =>
+        String(value || "").toLowerCase().includes(query)
+      )
+    );
+  }, [files, fileSearch]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="text-4xl mb-4">🛡️</div>
+          <p className="font-bold text-slate-700">
+            Verifying administrator access...
+          </p>
+          <p className="text-sm text-slate-500 mt-1">
+            Loading StudyShare controls
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-blue">
+                Restricted Area
+              </p>
+
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-800">
+                Admin Workspace
+              </h1>
+
+              <p className="text-sm text-slate-500 mt-1">
+                Manage StudyShare users, uploaded materials and system activity.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-brand-blue text-white flex items-center justify-center font-black">
+                {(adminInfo?.fullName || "A").charAt(0).toUpperCase()}
+              </div>
+
+              <div>
+                <p className="font-bold text-slate-800">
+                  {adminInfo?.fullName || "Administrator"}
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  {adminInfo?.username || ""}
+                </p>
+
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-black uppercase">
+                  Administrator
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-5 sm:px-6 py-7">
+        {/* Messages */}
+        {message && (
+          <div className="mb-5 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">
+            ✅ {message}
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-5 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
+            ⚠️ {error}
+          </div>
+        )}
+
+        {/* Navigation */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-7">
+          <AdminNavButton
+            active={activeSection === "overview"}
+            icon="📊"
+            title="Overview"
+            onClick={() => openSection("overview")}
+          />
+
+          <AdminNavButton
+            active={activeSection === "users"}
+            icon="👥"
+            title="User Management"
+            onClick={() => openSection("users")}
+          />
+
+          <AdminNavButton
+            active={activeSection === "files"}
+            icon="📁"
+            title="File Management"
+            onClick={() => openSection("files")}
+          />
+
+          <AdminNavButton
+            active={activeSection === "developer"}
+            icon="⚙️"
+            title="Developer Controls"
+            onClick={() => openSection("developer")}
+          />
+        </div>
+
+        {/* OVERVIEW */}
+        {activeSection === "overview" && (
+          <section>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+              <div>
+                <h2 className="text-xl font-black text-slate-800">
+                  System Overview
+                </h2>
+                <p className="text-sm text-slate-500">
+                  A quick view of the StudyShare platform.
+                </p>
+              </div>
+
+              <button
+                onClick={loadDashboard}
+                className="self-start px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50"
+              >
+                ↻ Refresh
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard
+                icon="👥"
+                title="Total Users"
+                value={stats?.users ?? 0}
+              />
+
+              <StatCard
+                icon="🎓"
+                title="Students"
+                value={stats?.students ?? 0}
+              />
+
+              <StatCard
+                icon="🛡️"
+                title="Administrators"
+                value={stats?.admins ?? 0}
+              />
+
+              <StatCard
+                icon="📁"
+                title="Uploaded Files"
+                value={stats?.files ?? 0}
+              />
+
+              <StatCard
+                icon="⬇️"
+                title="Downloads"
+                value={stats?.downloads ?? 0}
+              />
+
+              <StatCard
+                icon="🗂️"
+                title="Flashcard Sets"
+                value={stats?.flashcardSets ?? 0}
+              />
+
+              <StatCard
+                icon="🧠"
+                title="Flashcards"
+                value={stats?.flashcards ?? 0}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
+              <RecentUsers users={recentUsers} />
+
+              <RecentFiles
+                files={recentFiles}
+                onOpenFiles={() => openSection("files")}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* USERS */}
+        {activeSection === "users" && (
+          <section>
+            <SectionHeader
+              title="User Management"
+              description="View registered users and manage administrator privileges."
+              onRefresh={async () => {
+                clearMessages();
+                setSectionLoading(true);
+                await Promise.all([loadUsers(), loadStats()]);
+                setSectionLoading(false);
+              }}
+              loading={sectionLoading}
+            />
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-5">
+              <input
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                placeholder="Search by name, matriculation number or role..."
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              />
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="text-left px-5 py-4">User</th>
+                      <th className="text-left px-5 py-4">Role</th>
+                      <th className="text-left px-5 py-4">Files</th>
+                      <th className="text-left px-5 py-4">Flashcards</th>
+                      <th className="text-right px-5 py-4">Actions</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {filteredUsers.length === 0 ? (
+                      <EmptyRow
+                        colSpan="5"
+                        text="No users match your search."
+                      />
+                    ) : (
+                      filteredUsers.map((user) => {
+                        const isCurrentAdmin =
+                          user.id === adminInfo?.id;
+
+                        return (
+                          <tr
+                            key={user.id}
+                            className="border-b last:border-0 hover:bg-slate-50"
+                          >
+                            <td className="px-5 py-4">
+                              <p className="font-bold text-slate-800">
+                                {user.fullName}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {user.username}
+                              </p>
+                            </td>
+
+                            <td className="px-5 py-4">
+                              <RoleBadge role={user.role} />
+                            </td>
+
+                            <td className="px-5 py-4 text-slate-600">
+                              {user._count?.files ?? 0}
+                            </td>
+
+                            <td className="px-5 py-4 text-slate-600">
+                              {user._count?.flashcardSets ?? 0}
+                            </td>
+
+                            <td className="px-5 py-4">
+                              <div className="flex flex-wrap justify-end gap-2">
+                                {!isCurrentAdmin && (
+                                  <button
+                                    onClick={() => changeRole(user)}
+                                    disabled={Boolean(actionLoading)}
+                                    className={
+                                      user.role === "admin"
+                                        ? "px-3 py-2 rounded-lg bg-orange-50 text-orange-700 font-bold hover:bg-orange-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        : "px-3 py-2 rounded-lg bg-purple-50 text-purple-700 font-bold hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    }
+                                  >
+                                    {actionLoading === `role-${user.id}`
+                                      ? "Updating..."
+                                      : user.role === "admin"
+                                      ? "Remove Admin"
+                                      : "Make Admin"}
+                                  </button>
+                                )}
+
+                                {!isCurrentAdmin && (
+                                  <button
+                                    onClick={() => deleteUser(user)}
+                                    disabled={Boolean(actionLoading)}
+                                    className="px-3 py-2 rounded-lg bg-red-50 text-red-700 font-bold hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {actionLoading === `delete-user-${user.id}`
+                                      ? "Deleting..."
+                                      : "Delete"}
+                                  </button>
+                                )}
+
+                                {isCurrentAdmin && (
+                                  <span className="px-3 py-2 rounded-lg bg-slate-100 text-slate-500 font-semibold">
+                                    Your account
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* FILES */}
+        {activeSection === "files" && (
+          <section>
+            <SectionHeader
+              title="File Management"
+              description="Monitor and remove uploaded StudyShare materials."
+              onRefresh={async () => {
+                clearMessages();
+                setSectionLoading(true);
+                await Promise.all([loadFiles(), loadStats()]);
+                setSectionLoading(false);
+              }}
+              loading={sectionLoading}
+            />
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-5">
+              <input
+                value={fileSearch}
+                onChange={(e) => setFileSearch(e.target.value)}
+                placeholder="Search by title, filename, course, type or uploader..."
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              />
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="text-left px-5 py-4">Material</th>
+                      <th className="text-left px-5 py-4">Course</th>
+                      <th className="text-left px-5 py-4">Uploader</th>
+                      <th className="text-left px-5 py-4">Downloads</th>
+                      <th className="text-right px-5 py-4">Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {filteredFiles.length === 0 ? (
+                      <EmptyRow
+                        colSpan="5"
+                        text="No uploaded files match your search."
+                      />
+                    ) : (
+                      filteredFiles.map((file) => (
+                        <tr
+                          key={file.id}
+                          className="border-b last:border-0 hover:bg-slate-50"
+                        >
+                          <td className="px-5 py-4">
+                            <p className="font-bold text-slate-800">
+                              {file.title || file.filename}
+                            </p>
+
+                            <p className="text-xs text-slate-500 mt-1">
+                              {file.filename}
+                            </p>
+
+                            <span className="inline-block mt-2 px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">
+                              {file.type || file.mimetype || "FILE"}
+                            </span>
+                          </td>
+
+                          <td className="px-5 py-4 text-slate-600">
+                            {file.courseCode || "—"}
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <p className="font-semibold text-slate-700">
+                              {file.uploaderName ||
+                                file.user?.fullName ||
+                                "Unknown"}
+                            </p>
+
+                            <p className="text-xs text-slate-500">
+                              {file.user?.username || ""}
+                            </p>
+                          </td>
+
+                          <td className="px-5 py-4 text-slate-600">
+                            {file.downloads ?? 0}
+                          </td>
+
+                          <td className="px-5 py-4 text-right">
+                            <button
+                              onClick={() => deleteFile(file)}
+                              disabled={Boolean(actionLoading)}
+                              className="px-3 py-2 rounded-lg bg-red-50 text-red-700 font-bold hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {actionLoading === `delete-file-${file.id}`
+                                ? "Deleting..."
+                                : "Delete"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* DEVELOPER CONTROLS */}
+        {activeSection === "developer" && (
+          <section>
+            <SectionHeader
+              title="Developer Controls"
+              description="Developer-facing status and administrator information."
+              onRefresh={async () => {
+                clearMessages();
+                setSectionLoading(true);
+                await Promise.all([verifyAdmin(), loadStats()]);
+                setSectionLoading(false);
+              }}
+              loading={sectionLoading}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <SystemCard
+                icon="🔐"
+                title="Administrator Access"
+                value="Verified"
+                healthy
+              />
+
+              <SystemCard
+                icon="🌐"
+                title="Admin API"
+                value="Connected"
+                healthy
+              />
+
+              <SystemCard
+                icon="👤"
+                title="Current Administrator"
+                value={adminInfo?.username || "Unknown"}
+                healthy
+              />
+
+              <SystemCard
+                icon="📊"
+                title="Database Records"
+                value={`${stats?.users ?? 0} users • ${stats?.files ?? 0} files`}
+                healthy
+              />
+            </div>
+
+            <div className="mt-6 bg-white border border-slate-200 rounded-2xl p-6">
+              <h3 className="font-black text-slate-800">
+                Administrator API
+              </h3>
+
+              <p className="text-sm text-slate-500 mt-1 mb-4">
+                The frontend is connected to:
+              </p>
+
+              <code className="block bg-slate-900 text-slate-100 rounded-xl p-4 text-sm break-all">
+                {API_URL}/admin
+              </code>
+
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <ApiEndpoint method="GET" path="/admin/check" />
+                <ApiEndpoint method="GET" path="/admin/stats" />
+                <ApiEndpoint method="GET" path="/admin/users" />
+                <ApiEndpoint method="PATCH" path="/admin/users/:id/role" />
+                <ApiEndpoint method="DELETE" path="/admin/users/:id" />
+                <ApiEndpoint method="GET" path="/admin/files" />
+                <ApiEndpoint method="DELETE" path="/admin/files/:id" />
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function AdminNavButton({ active, icon, title, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`text-left p-4 rounded-2xl border transition ${
+        active
+          ? "bg-brand-blue text-white border-brand-blue shadow-md"
+          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+      }`}
+    >
+      <div className="text-xl mb-2">{icon}</div>
+      <div className="font-black text-sm">{title}</div>
+    </button>
+  );
+}
+
+function StatCard({ icon, title, value }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-5">
+      <div className="text-2xl mb-3">{icon}</div>
+      <p className="text-sm font-semibold text-slate-500">{title}</p>
+      <p className="text-3xl font-black text-slate-800 mt-1">{value}</p>
+    </div>
+  );
+}
+
+function RoleBadge({ role }) {
+  const isAdmin = role === "admin";
+
+  return (
+    <span
+      className={`inline-flex px-3 py-1 rounded-full text-xs font-black uppercase ${
+        isAdmin
+          ? "bg-purple-100 text-purple-700"
+          : "bg-blue-100 text-blue-700"
+      }`}
+    >
+      {role}
+    </span>
+  );
+}
+
+function SectionHeader({ title, description, onRefresh, loading }) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+      <div>
+        <h2 className="text-xl font-black text-slate-800">{title}</h2>
+        <p className="text-sm text-slate-500 mt-1">{description}</p>
+      </div>
+
+      <button
+        onClick={onRefresh}
+        disabled={loading}
+        className="self-start px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+      >
+        {loading ? "Refreshing..." : "↻ Refresh"}
+      </button>
+    </div>
+  );
+}
+
+function RecentUsers({ users }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-slate-200">
+        <h3 className="font-black text-slate-800">Recent Users</h3>
+      </div>
+
+      <div>
+        {users.length === 0 ? (
+          <p className="p-5 text-sm text-slate-500">No users found.</p>
+        ) : (
+          users.map((user) => (
+            <div
+              key={user.id}
+              className="px-5 py-4 border-b last:border-0 flex items-center justify-between gap-3"
+            >
+              <div>
+                <p className="font-bold text-sm text-slate-800">
+                  {user.fullName}
+                </p>
+                <p className="text-xs text-slate-500">{user.username}</p>
+              </div>
+
+              <RoleBadge role={user.role} />
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RecentFiles({ files, onOpenFiles }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-3">
+        <h3 className="font-black text-slate-800">Recent Files</h3>
+
+        <button
+          onClick={onOpenFiles}
+          className="text-xs font-bold text-brand-blue hover:underline"
+        >
+          View all
+        </button>
+      </div>
+
+      <div>
+        {files.length === 0 ? (
+          <p className="p-5 text-sm text-slate-500">No files found.</p>
+        ) : (
+          files.map((file) => (
+            <div
+              key={file.id}
+              className="px-5 py-4 border-b last:border-0"
+            >
+              <p className="font-bold text-sm text-slate-800">
+                {file.title || file.filename}
+              </p>
+
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-slate-500">
+                <span>{file.courseCode || "No course"}</span>
+                <span>{file.uploaderName || "Unknown uploader"}</span>
+                <span>{file.downloads ?? 0} downloads</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SystemCard({ icon, title, value, healthy }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-6">
+      <div className="text-2xl mb-3">{icon}</div>
+
+      <p className="text-sm font-semibold text-slate-500">{title}</p>
+
+      <div className="flex items-center gap-2 mt-2">
+        <span
+          className={`w-3 h-3 rounded-full ${
+            healthy ? "bg-green-500" : "bg-slate-400"
+          }`}
+        />
+
+        <p className="font-black text-slate-800">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function ApiEndpoint({ method, path }) {
+  return (
+    <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+      <span className="text-[10px] font-black text-slate-500 mr-2">
+        {method}
+      </span>
+      <code className="text-xs text-slate-700">{path}</code>
+    </div>
+  );
+}
+
+function EmptyRow({ colSpan, text }) {
+  return (
+    <tr>
+      <td
+        colSpan={colSpan}
+        className="px-5 py-10 text-center text-slate-500"
+      >
+        {text}
+      </td>
+    </tr>
+  );
+}
