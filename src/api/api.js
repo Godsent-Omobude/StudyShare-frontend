@@ -1,7 +1,16 @@
 import axios from "axios";
 
-const API_URL =
-  process.env.REACT_APP_API_URL || "https://studyshare-backend-1-vopy.onrender.com/api";
+const normalizeApiBaseUrl = (url) => {
+  const trimmed = String(url || "").trim().replace(/\/$/, "");
+  if (!trimmed) {
+    return "http://localhost:5000/api";
+  }
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+};
+
+const API_URL = normalizeApiBaseUrl(
+  process.env.REACT_APP_API_URL || "https://studyshare-backend-1-vopy.onrender.com"
+);
 
 const api = axios.create({
   baseURL: API_URL,
