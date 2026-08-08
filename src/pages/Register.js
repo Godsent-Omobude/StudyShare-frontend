@@ -71,6 +71,13 @@ export default function Register() {
             </div>
           </div>
 
+          <div className="sm:mx-auto w-full max-w-md z-10">
+        <h2 className="text-center text-4xl font-black text-brand-dark tracking-tight">StudyShare</h2>
+        <p className="mt-2 text-center text-sm text-slate-500 font-medium px-4">
+          A PRODUCTION BY GODSENT OMOBUDE
+        </p>
+      </div>
+
           <div className="p-7 sm:p-10 lg:p-12">
             <div className="mx-auto max-w-md">
               <h2 className="text-3xl font-black text-slate-900">
@@ -79,13 +86,6 @@ export default function Register() {
               <p className="mt-2 text-sm text-slate-500">
                 Set up your StudyShare student account.
               </p>
-
-              <div className="sm:mx-auto w-full max-w-md z-10">
-        <h2 className="text-center text-4xl font-black text-brand-dark tracking-tight">StudyShare</h2>
-        <p className="mt-2 text-center text-sm text-slate-500 font-medium px-4">
-          AN INITIATIVE BY THE PIONEER VICE PRESIDENT OF NAMBS—Godsent Omobude
-        </p>
-      </div>
 
               {error && (
                 <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
