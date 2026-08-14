@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import api from "../api/api";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: "⌂", end: true },
@@ -14,6 +16,25 @@ export default function Sidebar({ open, onClose }) {
   const username = localStorage.getItem("username") || "";
   const role = localStorage.getItem("role") || "student";
   const isAdmin = role === "admin";
+  const [profilePictureUrl, setProfilePictureUrl] = useState("");
+
+  useEffect(() => {
+    let objectUrl = "";
+    const loadPicture = async () => {
+      try {
+        if (!localStorage.getItem("profilePicture")) return;
+        const response = await api.get("/settings/profile-picture", { responseType: "blob" });
+        objectUrl = URL.createObjectURL(response.data);
+        setProfilePictureUrl(objectUrl);
+      } catch {
+        setProfilePictureUrl("");
+      }
+    };
+    loadPicture();
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, []);
 
   const logout = () => {
     localStorage.clear();
@@ -52,9 +73,17 @@ export default function Sidebar({ open, onClose }) {
 
         <div className="border-b border-white/10 px-5 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-600 text-xl font-bold">
-              {(fullName[0] || "S").toUpperCase()}
-            </div>
+            {profilePictureUrl ? (
+              <img
+                src={profilePictureUrl}
+                alt="Profile"
+                className="h-12 w-12 rounded-full object-cover ring-2 ring-white/20"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-600 text-xl font-bold">
+                {(fullName[0] || "S").toUpperCase()}
+              </div>
+            )}
             <div className="min-w-0">
               <p className="truncate font-bold">{fullName}</p>
               <p className="text-sm text-slate-400">{username || "Student"}</p>

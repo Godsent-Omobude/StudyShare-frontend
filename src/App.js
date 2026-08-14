@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 import Sidebar from "./components/Sidebar";
+import Settings from "./pages/Settings";
 
 function ProtectedLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -76,6 +77,19 @@ function PlaceholderPage({ title, description }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    const apply = () => {
+      const theme = localStorage.getItem("theme") || "system";
+      const accent = localStorage.getItem("accentColor") || "blue";
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.dataset.accent = accent;
+    };
+
+    apply();
+    window.addEventListener("studyshare-appearance-change", apply);
+    return () => window.removeEventListener("studyshare-appearance-change", apply);
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -143,10 +157,7 @@ export default function App() {
           path="/settings"
           element={
             <ProtectedLayout>
-              <PlaceholderPage
-                title="Settings"
-                description="Account and application settings can be added here."
-              />
+              <Settings />
             </ProtectedLayout>
           }
         />

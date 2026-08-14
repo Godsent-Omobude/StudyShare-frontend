@@ -1,22 +1,57 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
 import studyshareLogo from "../assets/studyshare-logo.png";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [matricNumber, setMatricNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const value = username.trim();
+    if (value.length < 3) {
+      setUsernameStatus("");
+      return undefined;
+    }
+
+    setUsernameStatus("checking");
+
+    const timer = setTimeout(async () => {
+      try {
+        const response = await api.get(`/auth/check-username/${encodeURIComponent(value)}`);
+        setUsernameStatus(response.data.available ? "available" : "taken");
+      } catch {
+        setUsernameStatus("");
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [username]);
 
   const handleRegister = async (event) => {
     event.preventDefault();
     setError("");
 
-    if (!username.toUpperCase().startsWith("BMS")) {
-      setError("Access denied: Invalid matriculation number.");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    if (usernameStatus === "taken") {
+      setError("That username is already taken. Please choose another.");
+      return;
+    }
+
+    if (usernameStatus === "checking") {
+      setError("Please wait while we check your username.");
       return;
     }
 
@@ -25,25 +60,22 @@ export default function Register() {
 
       const response = await api.post("/auth/register", {
         fullName,
+        email,
         username,
+        matricNumber,
         password,
       });
 
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem(
-          "fullName",
-          response.data.fullName || fullName
-        );
-        localStorage.setItem("username", username);
-        navigate("/");
-      } else {
-        navigate("/login");
-      }
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("fullName", response.data.fullName || fullName);
+      localStorage.setItem("username", response.data.username || username);
+      localStorage.setItem("email", response.data.email || email);
+      localStorage.setItem("role", response.data.role || "student");
+      localStorage.setItem("matricNumber", response.data.matricNumber || "");
+
+      navigate("/");
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Registration failure."
-      );
+      setError(err.response?.data?.message || "Registration failure.");
     } finally {
       setLoading(false);
     }
@@ -53,30 +85,19 @@ export default function Register() {
     <div className="min-h-screen bg-[#07152f] px-4 py-6 sm:py-10">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-md items-center justify-center">
         <div className="w-full overflow-hidden rounded-3xl bg-white shadow-2xl">
-
-          {/* StudyShare branding comes first */}
           <div className="bg-gradient-to-br from-[#07152f] via-[#0b2d66] to-[#1464d2] px-6 pb-7 pt-8 text-white">
             <div className="flex items-center justify-center gap-3">
-
-              {/* StudyShare logo */}
               <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white/15 shadow-lg ring-1 ring-white/20">
-                <img
-                  src={studyshareLogo}
-                  alt="StudyShare"
-                  className="h-full w-full object-cover"
-                />
+                <img src={studyshareLogo} alt="StudyShare" className="h-full w-full object-cover" />
               </div>
-
               <h1 className="text-3xl font-black tracking-tight">
                 Study<span className="text-blue-200">Share</span>
               </h1>
             </div>
-
             <div className="mt-6 text-center">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-100">
                 Share. Learn. Succeed.
               </p>
-
               <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-blue-50">
                 Your notes. Your flashcards. Your study space.
               </p>
@@ -84,106 +105,139 @@ export default function Register() {
           </div>
 
           <div className="px-6 pb-8 pt-7 sm:px-8">
-            <div className="mx-auto max-w-md">
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+              Create Account
+            </h2>
+            <p className="mt-2 text-sm leading-5 text-slate-500">
+              Set up your StudyShare student account.
+            </p>
 
-              <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
-                Create Account
-              </h2>
+            {error && (
+              <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold leading-5 text-red-700">
+                {error}
+              </div>
+            )}
 
-              <p className="mt-2 text-sm leading-5 text-slate-500">
-                Set up your StudyShare student account.
-              </p>
+            <form onSubmit={handleRegister} className="mt-6 space-y-5">
+              <div>
+                <label className="text-sm font-bold text-slate-700">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Enter your full name"
+                  autoComplete="name"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+              </div>
 
-              {error && (
-                <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold leading-5 text-red-700">
-                  {error}
-                </div>
-              )}
+              <div>
+                <label className="text-sm font-bold text-slate-700">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+              </div>
 
-              <form onSubmit={handleRegister} className="mt-6 space-y-5">
-
-                <div>
-                  <label className="text-sm font-bold text-slate-700">
-                    Full Name
-                  </label>
-
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
-                    autoComplete="name"
-                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-bold text-slate-700">
-                    Matriculation Number
-                  </label>
-
-                  <input
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="BMS2024..."
-                    autoComplete="username"
-                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm uppercase text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                  />
-
-                  <p className="mt-2 text-xs leading-4 text-slate-400">
-                    Your matriculation number must start with BMS.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-bold text-slate-700">
-                    Password
-                  </label>
-
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Create a password"
-                    autoComplete="new-password"
-                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-xl bg-[#1464d2] py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-[#0d55b8] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {loading ? "Creating..." : "Create Account"}
-                </button>
-
-              </form>
-
-              <p className="mt-6 text-center text-sm text-slate-500">
-                Already registered?{" "}
-                <Link
-                  to="/login"
-                  className="font-bold text-[#1464d2] hover:underline"
-                >
-                  Log in
-                </Link>
-              </p>
-
-              <div className="mt-7 border-t border-slate-100 pt-5 text-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#1464d2]">
-                  A STUDENT PLATFORM BY GODSENT OMOBUDE
+              <div>
+                <label className="text-sm font-bold text-slate-700">Username</label>
+                <input
+                  type="text"
+                  required
+                  minLength={3}
+                  maxLength={30}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Choose a username"
+                  autoComplete="username"
+                  className={`mt-2 w-full rounded-xl border bg-slate-50 px-4 py-3.5 text-sm outline-none transition focus:bg-white focus:ring-4 ${
+                    usernameStatus === "taken"
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                      : usernameStatus === "available"
+                        ? "border-green-300 focus:border-green-500 focus:ring-green-100"
+                        : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"
+                  }`}
+                />
+                <p className={`mt-2 text-xs font-semibold ${
+                  usernameStatus === "taken" ? "text-red-600" :
+                  usernameStatus === "available" ? "text-green-600" : "text-slate-400"
+                }`}>
+                  {usernameStatus === "checking" && "Checking username..."}
+                  {usernameStatus === "available" && "✓ Username is available"}
+                  {usernameStatus === "taken" && "✕ Username is already taken"}
+                  {!usernameStatus && "3–30 characters: letters, numbers, dots, underscores or hyphens."}
                 </p>
               </div>
 
+              <div>
+                <label className="text-sm font-bold text-slate-700">
+                  Matriculation Number <span className="font-normal text-slate-400">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={matricNumber}
+                  onChange={(e) => setMatricNumber(e.target.value)}
+                  placeholder="Enter your matriculation number"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-slate-700">Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create a password"
+                  autoComplete="new-password"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-slate-700">Confirm Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  autoComplete="new-password"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || usernameStatus === "taken" || usernameStatus === "checking"}
+                className="w-full rounded-xl bg-[#1464d2] py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-[#0d55b8] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Creating..." : "Create Account"}
+              </button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-slate-500">
+              Already registered?{" "}
+              <Link to="/login" className="font-bold text-[#1464d2] hover:underline">
+                Log in
+              </Link>
+            </p>
+
+            <div className="mt-7 border-t border-slate-100 pt-5 text-center">
+              <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#1464d2]">
+                A STUDENT PLATFORM BY GODSENT OMOBUDE
+              </p>
             </div>
           </div>
-
         </div>
       </div>
     </div>
