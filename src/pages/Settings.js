@@ -85,11 +85,6 @@ export default function Settings() {
     };
 
     load();
-
-    return () => {
-      if (profilePictureUrl) URL.revokeObjectURL(profilePictureUrl);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const saveProfile = async (event) => {
