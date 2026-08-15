@@ -3,7 +3,7 @@ import axios from "axios";
 const normalizeApiBaseUrl = (url) => {
   const trimmed = String(url || "").trim().replace(/\/$/, "");
   if (!trimmed) {
-    return "http://localhost:5000/api";
+    return "https://studyshare-backend-1-vopy.onrender.com/api";
   }
   return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
 };
