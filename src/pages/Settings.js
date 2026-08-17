@@ -27,6 +27,9 @@ export default function Settings() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -316,8 +319,18 @@ export default function Settings() {
         <section className="mb-5 rounded-3xl bg-white p-6 shadow-sm">
           <h2 className="text-xl font-black text-slate-900">Password</h2>
           <form onSubmit={changePassword} className="mt-5 grid gap-4 sm:grid-cols-2">
-            <input type="password" required value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Current password" className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--accent)]" />
-            <input type="password" required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New password" className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--accent)]" />
+            <div className="relative">
+              <input type={showCurrentPassword ? "text" : "password"} required value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Current password" className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm outline-none focus:border-[var(--accent)]" />
+              <button type="button" onClick={() => setShowCurrentPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700" aria-label={showCurrentPassword ? "Hide password" : "Show password"}>
+                {showCurrentPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
+            <div className="relative">
+              <input type={showNewPassword ? "text" : "password"} required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New password" className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm outline-none focus:border-[var(--accent)]" />
+              <button type="button" onClick={() => setShowNewPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700" aria-label={showNewPassword ? "Hide password" : "Show password"}>
+                {showNewPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
             <button disabled={saving} className="w-fit rounded-xl bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white">
               Change password
             </button>
@@ -397,14 +410,24 @@ export default function Settings() {
               placeholder="I agree to delete my account"
               className="w-full rounded-xl border border-red-200 bg-white px-4 py-3 text-sm outline-none focus:border-red-500"
             />
-            <input
-              type="password"
-              required
-              value={deletePassword}
-              onChange={(e) => setDeletePassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full rounded-xl border border-red-200 bg-white px-4 py-3 text-sm outline-none focus:border-red-500"
-            />
+            <div className="relative">
+              <input
+                type={showDeletePassword ? "text" : "password"}
+                required
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full rounded-xl border border-red-200 bg-white px-4 py-3 pr-12 text-sm outline-none focus:border-red-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowDeletePassword((value) => !value)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                aria-label={showDeletePassword ? "Hide password" : "Show password"}
+              >
+                {showDeletePassword ? "🙈" : "👁️"}
+              </button>
+            </div>
             <button
               disabled={saving}
               className="rounded-xl bg-red-600 px-5 py-3 text-sm font-black text-white hover:bg-red-700 disabled:opacity-60"
