@@ -191,7 +191,7 @@ export default function GenerateFlashcards() {
                   Generate
                 </h3>
                 <p className="mt-1 text-xs leading-5 text-slate-500">
-                  Gemini analyses the extracted document text and creates cards.
+                  Generate Flashcard and Test Yourself Before Revealing Answers.
                 </p>
               </div>
 

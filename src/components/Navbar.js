@@ -1,34 +1,34 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React from "react";
 
-export default function Navbar() {
-  const navigate = useNavigate();
-  const userName = localStorage.getItem('fullName');
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
-  };
+export default function Navbar({ onMenuOpen }) {
+  const userName = localStorage.getItem("fullName") || "Student";
+  const profileInitial = (userName.trim()[0] || "S").toUpperCase();
 
   return (
-    <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-black text-brand-blue tracking-tight">StudyShare</span>
+    <nav className="sticky top-0 z-30 h-[72px] border-b border-slate-200/90 bg-white/95 px-4 shadow-[0_1px_12px_rgba(15,23,42,0.05)] backdrop-blur sm:px-6">
+      <div className="mx-auto flex h-full w-full items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onMenuOpen}
+            aria-label="Open navigation menu"
+            aria-expanded={false}
+            className="group flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-brand-blue active:scale-95"
+          >
+            <span className="text-[25px] leading-none transition group-hover:scale-95">☰</span>
+          </button>
+
+          <div className="text-[25px] font-black tracking-[-0.04em] text-brand-blue sm:text-[28px]">
+            StudyShare
           </div>
-          <div className="flex items-center gap-6">
-            <Link to="/" className="text-sm font-semibold text-slate-600 hover:text-brand-blue transition">Home</Link>
-            <span className="text-xs font-medium bg-blue-50 text-brand-blue px-3 py-1.5 rounded-full border border-blue-200">
-              🎓 {userName}
-            </span>
-            <button 
-              onClick={handleLogout} 
-              className="text-sm font-bold text-red-600 hover:text-red-700 transition"
-            >
-              Logout
-            </button>
-          </div>
+        </div>
+
+        <div
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-accent text-base font-black text-white shadow-md shadow-blue-100 ring-4 ring-blue-50"
+          title={userName}
+          aria-label={`Logged in as ${userName}`}
+        >
+          {profileInitial}
         </div>
       </div>
     </nav>
