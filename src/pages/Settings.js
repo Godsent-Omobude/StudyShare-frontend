@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../api/api";
+import { Eye, EyeOff } from "lucide-react";
 
 const themes = ["light", "dark", "system"];
 const accents = [
@@ -322,13 +323,13 @@ export default function Settings() {
             <div className="relative">
               <input type={showCurrentPassword ? "text" : "password"} required value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Current password" className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm outline-none focus:border-[var(--accent)]" />
               <button type="button" onClick={() => setShowCurrentPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700" aria-label={showCurrentPassword ? "Hide password" : "Show password"}>
-                {showCurrentPassword ? "🙈" : "👁️"}
+                {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             <div className="relative">
               <input type={showNewPassword ? "text" : "password"} required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New password" className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm outline-none focus:border-[var(--accent)]" />
               <button type="button" onClick={() => setShowNewPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700" aria-label={showNewPassword ? "Hide password" : "Show password"}>
-                {showNewPassword ? "🙈" : "👁️"}
+                {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             <button disabled={saving} className="w-fit rounded-xl bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white">
@@ -425,7 +426,7 @@ export default function Settings() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
                 aria-label={showDeletePassword ? "Hide password" : "Show password"}
               >
-                {showDeletePassword ? "🙈" : "👁️"}
+                {showDeletePassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             <button
