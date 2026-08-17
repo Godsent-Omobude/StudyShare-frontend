@@ -166,17 +166,17 @@ export default function Dashboard() {
   const recentFlashcards = flashcardSets.slice(0, 3);
 
   return (
-    <main className="min-h-[calc(100vh-4.5rem)] bg-[#f7f9fc] px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100vh-4rem)] bg-[#f7f9fc] px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
 
         {/* KEEPING THE WELCOME BAR EXACTLY AS REQUESTED */}
-        <section className="mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-[#07152f] via-[#122d68] to-brand-accent p-6 text-white shadow-xl sm:p-8">
+        <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-r from-[#07152f] via-[#122d68] to-brand-accent p-5 text-white shadow-xl sm:mb-8 sm:p-8">
           <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-200">
                 Welcome back
               </p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+              <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-4xl">
                 Welcome, {userName} 👋
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-blue-100 sm:text-base">
@@ -192,21 +192,21 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="mt-7 grid grid-cols-3 divide-x divide-white/10 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/20">
-            <div className="px-3 py-4 text-center sm:px-5">
-              <p className="text-2xl font-black sm:text-3xl">{files.length}</p>
+          <div className="mt-5 grid grid-cols-3 divide-x divide-white/10 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/20">
+            <div className="px-2 py-3 text-center sm:px-5 sm:py-4">
+              <p className="text-xl font-black sm:text-3xl">{files.length}</p>
               <p className="mt-1 text-[11px] font-semibold text-blue-100 sm:text-xs">
                 Materials
               </p>
             </div>
-            <div className="px-3 py-4 text-center sm:px-5">
-              <p className="text-2xl font-black sm:text-3xl">{totalDownloads}</p>
+            <div className="px-2 py-3 text-center sm:px-5 sm:py-4">
+              <p className="text-xl font-black sm:text-3xl">{totalDownloads}</p>
               <p className="mt-1 text-[11px] font-semibold text-blue-100 sm:text-xs">
                 Downloads
               </p>
             </div>
-            <div className="px-3 py-4 text-center sm:px-5">
-              <p className="text-2xl font-black sm:text-3xl">
+            <div className="px-2 py-3 text-center sm:px-5 sm:py-4">
+              <p className="text-xl font-black sm:text-3xl">
                 {flashcardSets.length}
               </p>
               <p className="mt-1 text-[11px] font-semibold text-blue-100 sm:text-xs">
@@ -217,9 +217,9 @@ export default function Dashboard() {
         </section>
 
         {/* Quick actions — intentionally kept as a 3-column row on desktop */}
-        <section id="features" className="mb-8">
+        <section id="features" className="mb-6 sm:mb-8">
           <div className="mb-5 flex items-center justify-between gap-4 px-1">
-            <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-[26px]">
+            <h2 className="text-xl font-black tracking-tight text-slate-900 sm:text-[26px]">
               Quick Actions
             </h2>
             <a
@@ -234,7 +234,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             <Link
               to="/generate-flashcards"
-              className="group flex min-h-[285px] flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_4px_18px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:shadow-xl"
+              className="group flex min-h-[230px] flex-col rounded-3xl sm:min-h-[285px] border border-slate-200 bg-white p-6 shadow-[0_4px_18px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:shadow-xl"
             >
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-brand-accent">
                 <Icon name="spark" className="h-7 w-7" />
@@ -251,7 +251,7 @@ export default function Dashboard() {
 
             <Link
               to="/my-flashcards"
-              className="group flex min-h-[285px] flex-col rounded-3xl border border-emerald-100 bg-white p-6 shadow-[0_4px_18px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:shadow-xl"
+              className="group flex min-h-[230px] flex-col rounded-3xl sm:min-h-[285px] border border-emerald-100 bg-white p-6 shadow-[0_4px_18px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:shadow-xl"
             >
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                 <Icon name="cards" className="h-7 w-7" />
@@ -268,7 +268,7 @@ export default function Dashboard() {
 
             <Link
               to="/my-flashcards"
-              className="group flex min-h-[285px] flex-col rounded-3xl border border-violet-100 bg-white p-6 shadow-[0_4px_18px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:shadow-xl"
+              className="group flex min-h-[230px] flex-col rounded-3xl sm:min-h-[285px] border border-violet-100 bg-white p-6 shadow-[0_4px_18px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:shadow-xl"
             >
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-50 text-violet-600">
                 <Icon name="trend" className="h-7 w-7" />
@@ -286,9 +286,9 @@ export default function Dashboard() {
         </section>
 
         {/* Study hub — intentionally kept as a 2-column row on desktop */}
-        <section id="study-hub" className="mb-8">
+        <section id="study-hub" className="mb-6 sm:mb-8">
           <div className="mb-5 px-1">
-            <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-[26px]">
+            <h2 className="text-xl font-black tracking-tight text-slate-900 sm:text-[26px]">
               Your Study Hub
             </h2>
           </div>
@@ -296,7 +296,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <a
               href="#materials"
-              className="group relative min-h-[245px] overflow-hidden rounded-3xl border border-blue-100 bg-blue-50/70 p-6 transition duration-200 hover:-translate-y-1 hover:shadow-xl"
+              className="group relative min-h-[210px] overflow-hidden rounded-3xl sm:min-h-[245px] border border-blue-100 bg-blue-50/70 p-6 transition duration-200 hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="absolute -bottom-12 -right-8 h-40 w-40 rounded-full bg-white/45 transition group-hover:scale-110" />
               <div className="relative flex h-full flex-col">
@@ -319,7 +319,7 @@ export default function Dashboard() {
 
             <Link
               to="/my-flashcards"
-              className="group relative min-h-[245px] overflow-hidden rounded-3xl border border-emerald-100 bg-emerald-50/70 p-6 transition duration-200 hover:-translate-y-1 hover:shadow-xl"
+              className="group relative min-h-[210px] overflow-hidden rounded-3xl sm:min-h-[245px] border border-emerald-100 bg-emerald-50/70 p-6 transition duration-200 hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="absolute -bottom-12 -right-8 h-40 w-40 rounded-full bg-white/45 transition group-hover:scale-110" />
               <div className="relative flex h-full flex-col">
@@ -343,7 +343,7 @@ export default function Dashboard() {
         </section>
 
         {/* Study tip */}
-        <section className="mb-8 flex items-center gap-4 rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-[0_4px_18px_rgba(15,23,42,0.04)] sm:px-6">
+        <section className="mb-6 flex items-start gap-3 rounded-3xl sm:mb-8 sm:items-center border border-slate-200 bg-white px-5 py-4 shadow-[0_4px_18px_rgba(15,23,42,0.04)] sm:px-6">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-50 text-xl">
             💡
           </div>
@@ -364,7 +364,7 @@ export default function Dashboard() {
         {/* Upload workspace */}
         <section
           id="upload"
-          className="mb-8 scroll-mt-24 overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-sm"
+          className="mb-6 scroll-mt-24 overflow-hidden rounded-3xl sm:mb-8 border border-blue-100 bg-white shadow-sm"
         >
           <div className="border-b border-slate-100 bg-gradient-to-r from-blue-50/80 to-white px-5 py-5 sm:px-6">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -398,7 +398,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            <form onSubmit={handleUploadSubmit} className="grid gap-4 lg:grid-cols-2">
+            <form onSubmit={handleUploadSubmit} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
               <input
                 type="text"
                 required
@@ -507,7 +507,7 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
             {filteredFiles.length ? (
               filteredFiles.map((file) => {
                 const fileId = file.id ?? file._id;
