@@ -5,6 +5,7 @@ import api from "../api/api";
 export default function FlashcardList({
   flashcards = [],
   title = "Your Flashcards",
+  flashcardSetId = null,
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mode, setMode] = useState("normal");
@@ -12,6 +13,9 @@ export default function FlashcardList({
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [scores, setScores] = useState({});
   const [sessionStarted, setSessionStarted] = useState(false);
+  const [isSavingResult, setIsSavingResult] = useState(false);
+  const [resultSaved, setResultSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -20,6 +24,9 @@ export default function FlashcardList({
     setIsEvaluating(false);
     setScores({});
     setSessionStarted(false);
+    setIsSavingResult(false);
+    setResultSaved(false);
+    setSaveError("");
   }, [flashcards]);
 
   const currentCard = flashcards[currentIndex];
@@ -73,6 +80,29 @@ export default function FlashcardList({
       });
     } finally {
       setIsEvaluating(false);
+    }
+  };
+
+  const savePracticeResult = async () => {
+    if (!flashcardSetId || !completedCount || isSavingResult || resultSaved) return;
+
+    try {
+      setIsSavingResult(true);
+      setSaveError("");
+
+      await api.post(`/ai/flashcards/${flashcardSetId}/practice-result`, {
+        score: averageScore,
+        completedCount
+      });
+
+      setResultSaved(true);
+    } catch (error) {
+      setSaveError(
+        error.response?.data?.message ||
+          "Unable to save your practice result. Please try again."
+      );
+    } finally {
+      setIsSavingResult(false);
     }
   };
 
@@ -225,6 +255,29 @@ export default function FlashcardList({
           <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">
             Average score
           </p>
+
+          {flashcardSetId && (
+            <>
+              <button
+                type="button"
+                onClick={savePracticeResult}
+                disabled={isSavingResult || resultSaved}
+                className="mt-5 w-full rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              >
+                {resultSaved
+                  ? "✓ Practice Result Saved"
+                  : isSavingResult
+                  ? "Saving Result..."
+                  : "Save Practice Result"}
+              </button>
+
+              {saveError && (
+                <p className="mt-3 text-sm font-semibold text-red-600">
+                  {saveError}
+                </p>
+              )}
+            </>
+          )}
         </div>
       )}
     </section>

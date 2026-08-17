@@ -16,8 +16,8 @@ export default function MyFlashcards() {
       setLoading(true);
       setError("");
 
-      const response = await api.get("/flashcards");
-      setSets(Array.isArray(response.data) ? response.data : []);
+      const response = await api.get("/ai/flashcards");
+      setSets(response.data?.flashcardSets || []);
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -31,8 +31,8 @@ export default function MyFlashcards() {
   const loadSet = async (setId) => {
     try {
       setError("");
-      const response = await api.get(`/flashcards/${setId}`);
-      setSelectedSet(response.data);
+      const response = await api.get(`/ai/flashcards/${setId}`);
+      setSelectedSet(response.data?.flashcardSet || null);
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -61,7 +61,7 @@ export default function MyFlashcards() {
     if (!confirmed) return;
 
     try {
-      await api.delete(`/flashcards/${setId}`);
+      await api.delete(`/ai/flashcards/${setId}`);
       setSets((current) => current.filter((set) => set.id !== setId));
 
       if (selectedSet?.id === setId) {
@@ -131,6 +131,12 @@ export default function MyFlashcards() {
                 <p className="mt-1 text-sm text-slate-500">
                   {selectedSet.flashcards?.length || 0} flashcards
                 </p>
+                {selectedSet.lastPracticeScore !== null &&
+                  selectedSet.lastPracticeScore !== undefined && (
+                    <p className="mt-1 text-xs font-bold text-emerald-600">
+                      Last practice score: {selectedSet.lastPracticeScore}%
+                    </p>
+                  )}
               </div>
 
               <button
@@ -144,6 +150,7 @@ export default function MyFlashcards() {
             <FlashcardList
               flashcards={selectedSet.flashcards || []}
               title="Study Session"
+              flashcardSetId={selectedSet.id}
             />
           </section>
         ) : (
