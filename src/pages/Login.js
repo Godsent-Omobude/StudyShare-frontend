@@ -75,7 +75,7 @@ export default function Login() {
                   className="h-14 w-14 rounded-2xl object-contain"
                 />
                 <span className="text-2xl font-black tracking-tight text-slate-900">
-                  Study<span className="text-blue-600">Share</span>
+                  Study<span className="text-blue-600">2Gate</span>
                 </span>
               </div>
 
