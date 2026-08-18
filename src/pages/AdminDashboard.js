@@ -291,7 +291,7 @@ export default function AdminDashboard() {
             Verifying administrator access...
           </p>
           <p className="text-sm text-slate-500 mt-1">
-            Loading StudyShare controls
+            Loading Study2Gate controls
           </p>
         </div>
       </div>
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
               </h1>
 
               <p className="text-sm text-slate-500 mt-1">
-                Manage StudyShare users, uploaded materials and system activity.
+                Manage Study2Gate users, uploaded materials and system activity.
               </p>
             </div>
 
@@ -395,7 +395,7 @@ export default function AdminDashboard() {
                   System Overview
                 </h2>
                 <p className="text-sm text-slate-500">
-                  A quick view of the StudyShare platform.
+                  A quick view of the Study2Gate platform.
                 </p>
               </div>
 
@@ -591,7 +591,7 @@ export default function AdminDashboard() {
           <section>
             <SectionHeader
               title="File Management"
-              description="Monitor and remove uploaded StudyShare materials."
+              description="Monitor and remove uploaded Study2Gate materials."
               onRefresh={async () => {
                 clearMessages();
                 setSectionLoading(true);

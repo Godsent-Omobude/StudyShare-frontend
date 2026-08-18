@@ -39,7 +39,7 @@ function ProtectedLayout({ children }) {
               ☰
             </button>
             <div className="text-xl font-black tracking-tight text-brand-blue">
-              StudyShare
+              Study2Gate
             </div>
           </div>
 
@@ -85,9 +85,9 @@ export default function App() {
     };
 
     apply();
-    window.addEventListener("studyshare-appearance-change", apply);
+    window.addEventListener("study2gate-appearance-change", apply);
     return () =>
-      window.removeEventListener("studyshare-appearance-change", apply);
+      window.removeEventListener("study2gate-appearance-change", apply);
   }, []);
 
   return (

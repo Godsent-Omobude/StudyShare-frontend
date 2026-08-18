@@ -40,13 +40,13 @@ export default function Navbar({ onMenuOpen }) {
     };
 
     window.addEventListener(
-      "studyshare-profile-picture-updated",
+      "study2gate-profile-picture-updated",
       handleProfilePictureUpdated
     );
 
     return () => {
       window.removeEventListener(
-        "studyshare-profile-picture-updated",
+        "study2gate-profile-picture-updated",
         handleProfilePictureUpdated
       );
 
@@ -72,7 +72,7 @@ export default function Navbar({ onMenuOpen }) {
           </button>
 
           <div className="text-[25px] font-black tracking-[-0.04em] text-brand-blue sm:text-[28px]">
-            StudyShare
+            Study2Gate
           </div>
         </div>
 

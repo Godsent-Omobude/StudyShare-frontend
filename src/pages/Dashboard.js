@@ -15,6 +15,8 @@ export default function Dashboard() {
   const [type, setType] = useState("Material");
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadMsg, setUploadMsg] = useState({ text: "", isError: false });
+  const [downloadingId, setDownloadingId] = useState(null);
+  const [downloadedId, setDownloadedId] = useState(null);
 
   const userName = localStorage.getItem("fullName") || "Student";
 
@@ -92,6 +94,11 @@ export default function Dashboard() {
   };
 
   const handleDownload = async (fileId, originalName) => {
+    if (downloadingId === fileId) return;
+
+    setDownloadingId(fileId);
+    setDownloadedId(null);
+
     try {
       const response = await api.get(`/files/download/${fileId}`, {
         responseType: "blob",
@@ -107,11 +114,18 @@ export default function Dashboard() {
       link.remove();
       window.URL.revokeObjectURL(url);
 
+      setDownloadedId(fileId);
       fetchFiles();
+
+      window.setTimeout(() => {
+        setDownloadedId((current) => (current === fileId ? null : current));
+      }, 2200);
     } catch (error) {
       window.alert(
         error.response?.data?.message || "Unable to download this file."
       );
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -199,7 +213,7 @@ export default function Dashboard() {
               Upload Material
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Add a resource to the StudyShare repository.
+              Add a resource to the Study2Gate repository.
             </p>
 
             {uploadMsg.text && (
@@ -396,10 +410,25 @@ export default function Dashboard() {
                       </span>
 
                       <button
+                        type="button"
                         onClick={() => handleDownload(fileId, filename)}
-                        className="rounded-lg bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700 hover:bg-violet-100"
+                        disabled={downloadingId === fileId}
+                        className={`inline-flex min-w-[108px] items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition ${
+                          downloadedId === fileId
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-violet-50 text-violet-700 hover:bg-violet-100"
+                        } disabled:cursor-not-allowed disabled:opacity-70`}
                       >
-                        ↓ Download
+                        {downloadingId === fileId ? (
+                          <>
+                            <span className="h-3 w-3 animate-spin rounded-full border-2 border-violet-200 border-t-violet-700" />
+                            Downloading...
+                          </>
+                        ) : downloadedId === fileId ? (
+                          "✓ Downloaded"
+                        ) : (
+                          "↓ Download"
+                        )}
                       </button>
                     </div>
                   </article>

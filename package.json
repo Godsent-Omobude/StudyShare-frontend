@@ -1,5 +1,5 @@
 {
-  "name": "studyshare-frontend",
+  "name": "study2gate-frontend",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -37,5 +37,5 @@
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3"
   },
-  "description": "StudyShare student academic workspace frontend"
+  "description": "Study2Gate student academic workspace frontend"
 }

@@ -17,7 +17,7 @@ const applyAppearance = (theme, accentColor) => {
   root.dataset.accent = accentColor;
   localStorage.setItem("theme", theme);
   localStorage.setItem("accentColor", accentColor);
-  window.dispatchEvent(new Event("studyshare-appearance-change"));
+  window.dispatchEvent(new Event("study2gate-appearance-change"));
 };
 
 export default function Settings() {
@@ -124,7 +124,7 @@ export default function Settings() {
       setSettings(response.data);
       syncLocalStorage(response.data);
       await loadProfilePicture();
-      window.dispatchEvent(new Event("studyshare-profile-picture-updated"));
+      window.dispatchEvent(new Event("study2gate-profile-picture-updated"));
       showMessage("Profile picture updated.");
     } catch (err) {
       showError(err.response?.data?.message || "Unable to update profile picture.");
@@ -141,7 +141,7 @@ export default function Settings() {
       setSettings(response.data);
       syncLocalStorage(response.data);
       setProfilePictureUrl("");
-      window.dispatchEvent(new Event("studyshare-profile-picture-updated"));
+      window.dispatchEvent(new Event("study2gate-profile-picture-updated"));
       showMessage("Profile picture removed.");
     } catch (err) {
       showError(err.response?.data?.message || "Unable to remove profile picture.");
@@ -201,7 +201,7 @@ export default function Settings() {
       return;
     }
 
-    if (!window.confirm("This permanently deletes your StudyShare account. Continue?")) {
+    if (!window.confirm("This permanently deletes your Study2Gate account. Continue?")) {
       return;
     }
 
@@ -238,7 +238,7 @@ export default function Settings() {
         <div className="mb-6">
           <h1 className="text-3xl font-black text-slate-900">Settings</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Manage your StudyShare account and preferences.
+            Manage your Study2Gate account and preferences.
           </p>
         </div>
 

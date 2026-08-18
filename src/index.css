@@ -7,7 +7,7 @@ body {
 }
 
 
-/* StudyShare v1 global appearance system */
+/* Study2Gate v1 global appearance system */
 :root {
   --accent: #1464d2;
   --accent-soft: #e8f1ff;
@@ -40,7 +40,7 @@ html[data-accent="yellow"] {
   --accent-hover: #a16207;
 }
 
-/* Let common existing accent classes follow the selected StudyShare accent. */
+/* Let common existing accent classes follow the selected Study2Gate accent. */
 html[data-accent] .bg-violet-600,
 html[data-accent] .bg-blue-600,
 html[data-accent] .bg-\[\#1464d2\] {

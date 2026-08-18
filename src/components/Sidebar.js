@@ -85,7 +85,7 @@ export default function Sidebar({ open, onClose }) {
             <span className="text-lg font-black">S</span>
           </div>
           <div className="text-[23px] font-black tracking-[-0.04em]">
-            Study<span className="text-blue-300">Share</span>
+            Study<span className="text-blue-300">2Gate</span>
           </div>
           <button
             type="button"

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
+import logo from "../assets/study2gate-logo.png";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
@@ -42,8 +43,15 @@ export default function Login() {
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
         <div className="grid w-full overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-2">
           <div className="hidden bg-gradient-to-br from-[#07152f] to-blue-700 p-12 text-white lg:block">
-            <div className="text-3xl font-black">
-              Study<span className="text-blue-300">Share</span>
+            <div className="flex items-center gap-3">
+              <img
+                src={logo}
+                alt="Study2Gate logo"
+                className="h-12 w-12 rounded-2xl object-contain"
+              />
+              <div className="text-3xl font-black tracking-tight">
+                Study<span className="text-blue-300">Share</span>
+              </div>
             </div>
             <div className="mt-24">
               <p className="text-sm font-bold uppercase tracking-widest text-blue-200">
@@ -60,9 +68,20 @@ export default function Login() {
 
           <div className="p-7 sm:p-10 lg:p-12">
             <div className="mx-auto max-w-md">
+              <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
+                <img
+                  src={logo}
+                  alt="Study2Gate logo"
+                  className="h-14 w-14 rounded-2xl object-contain"
+                />
+                <span className="text-2xl font-black tracking-tight text-slate-900">
+                  Study<span className="text-blue-600">Share</span>
+                </span>
+              </div>
+
               <h2 className="text-3xl font-black text-slate-900">Welcome back</h2>
               <p className="mt-2 text-sm text-slate-500">
-                Sign in to continue to StudyShare.
+                Sign in to continue to Study2Gate.
               </p>
 
               {error && (
@@ -127,7 +146,7 @@ export default function Login() {
               </form>
 
               <p className="mt-6 text-center text-sm text-slate-500">
-                New to StudyShare?{" "}
+                New to Study2Gate?{" "}
                 <Link to="/register" className="font-bold text-blue-700 hover:underline">
                   Create an account
                 </Link>

@@ -142,35 +142,66 @@ export default function Flashcard({
   }
 
   return (
-    <button
-      type="button"
+    <div
+      className="group w-full cursor-pointer [perspective:1200px]"
       onClick={() => setIsRevealed((value) => !value)}
-      className="group w-full text-left"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setIsRevealed((value) => !value);
+        }
+      }}
       aria-label={isRevealed ? "Show question" : "Show answer"}
     >
-      <div className="min-h-[280px] rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-        <div className="mb-6 flex items-center justify-between">
-          <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-violet-700">
-            {isRevealed ? "Answer" : "Question"}
-          </span>
+      <div
+        className={`relative min-h-[300px] w-full transition-transform duration-700 [transform-style:preserve-3d] ${
+          isRevealed ? "[transform:rotateY(180deg)]" : ""
+        }`}
+      >
+        <div className="absolute inset-0 flex min-h-[300px] flex-col rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-shadow duration-300 [backface-visibility:hidden] group-hover:shadow-xl">
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-violet-700">
+              Question
+            </span>
+            <span className="text-xs font-semibold text-slate-400">
+              Click to flip
+            </span>
+          </div>
 
-          <span className="text-xs font-semibold text-slate-400">
-            Click to flip
-          </span>
+          <div className="flex flex-1 items-center justify-center text-center">
+            <p className="text-lg font-semibold leading-8 text-slate-800 sm:text-xl">
+              {front}
+            </p>
+          </div>
+
+          <div className="mt-6 border-t border-slate-100 pt-4 text-center text-xs font-medium text-slate-400">
+            Click to reveal the answer
+          </div>
         </div>
 
-        <div className="flex min-h-[150px] items-center">
-          <p className="text-lg font-semibold leading-8 text-slate-800 sm:text-xl">
-            {isRevealed ? back : front}
-          </p>
-        </div>
+        <div className="absolute inset-0 flex min-h-[300px] flex-col rounded-3xl border border-violet-200 bg-violet-50 p-7 shadow-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-wide text-violet-700">
+              Answer
+            </span>
+            <span className="text-xs font-semibold text-violet-400">
+              Click to flip back
+            </span>
+          </div>
 
-        <div className="mt-6 border-t border-slate-100 pt-4 text-xs font-medium text-slate-400">
-          {isRevealed
-            ? "Click to show the question"
-            : "Click to reveal the answer"}
+          <div className="flex flex-1 items-center justify-center text-center">
+            <p className="text-lg font-semibold leading-8 text-slate-800 sm:text-xl">
+              {back}
+            </p>
+          </div>
+
+          <div className="mt-6 border-t border-violet-200 pt-4 text-center text-xs font-medium text-violet-500">
+            Click to show the question
+          </div>
         </div>
       </div>
-    </button>
+    </div>
   );
 }

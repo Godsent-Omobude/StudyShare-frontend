@@ -34,7 +34,7 @@ export default function ForgotPassword() {
 
           <h1 className="mt-10 text-3xl font-black text-slate-900">Forgot password?</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Enter the email address linked to your StudyShare account and we will send you a password reset link.
+            Enter the email address linked to your Study2Gate account and we will send you a password reset link.
           </p>
 
           {message && (

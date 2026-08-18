@@ -60,7 +60,7 @@ export default function ResetPassword() {
 
           <h1 className="mt-10 text-3xl font-black text-slate-900">Reset password</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Choose a new password for your StudyShare account.
+            Choose a new password for your Study2Gate account.
           </p>
 
           {message && (

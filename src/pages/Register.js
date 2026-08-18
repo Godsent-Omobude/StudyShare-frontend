@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
-import studyshareLogo from "../assets/studyshare-logo.png";
+import study2gateLogo from "../assets/study2gate-logo.png";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function Register() {
@@ -91,10 +91,10 @@ export default function Register() {
           <div className="bg-gradient-to-br from-[#07152f] via-[#0b2d66] to-[#1464d2] px-6 pb-7 pt-8 text-white">
             <div className="flex items-center justify-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white/15 shadow-lg ring-1 ring-white/20">
-                <img src={studyshareLogo} alt="StudyShare" className="h-full w-full object-cover" />
+                <img src={study2gateLogo} alt="Study2Gate" className="h-full w-full object-cover" />
               </div>
               <h1 className="text-3xl font-black tracking-tight">
-                Study<span className="text-blue-200">Share</span>
+                Study<span className="text-blue-200">2Gate</span>
               </h1>
             </div>
             <div className="mt-6 text-center">
@@ -112,7 +112,7 @@ export default function Register() {
               Create Account
             </h2>
             <p className="mt-2 text-sm leading-5 text-slate-500">
-              Set up your StudyShare student account.
+              Set up your Study2Gate student account.
             </p>
 
             {error && (
