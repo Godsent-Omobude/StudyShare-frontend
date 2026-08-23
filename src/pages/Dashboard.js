@@ -162,6 +162,11 @@ export default function Dashboard() {
     });
   }, [files, search, filterType]);
 
+  const totalDownloads = useMemo(
+    () => files.reduce((total, file) => total + Number(file.downloads || 0), 0),
+    [files]
+  );
+
   // Builds the last 7 calendar days for the streak panel's day-dot row,
   // marking a day "done" if it falls inside the current streak's window.
   const streakDayDots = useMemo(() => {
@@ -204,7 +209,7 @@ export default function Dashboard() {
                 Welcome back
               </p>
               <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
-                Welcome, {userName} 
+                Welcome, {userName} 👋
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-violet-100 sm:text-base">
                 Your academic workspace for sharing materials, generating
