@@ -187,10 +187,13 @@ export default function Settings() {
 
     try {
       setSaving(true);
-      await api.patch("/settings/password", {
+      const response = await api.patch("/settings/password", {
         currentPassword,
         newPassword,
       });
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
       setCurrentPassword("");
       setNewPassword("");
       showMessage("Password changed successfully.");
