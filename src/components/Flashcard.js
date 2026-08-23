@@ -22,6 +22,15 @@ export default function Flashcard({
     onRevealAnswer?.();
   };
 
+  const flipNormalCard = () => {
+    setIsRevealed((value) => {
+      const next = !value;
+      // Count it as reviewed once the answer side has been seen.
+      if (next) onRevealAnswer?.();
+      return next;
+    });
+  };
+
   if (mode === "test") {
     return (
       <div className="w-full rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
@@ -144,13 +153,13 @@ export default function Flashcard({
   return (
     <div
       className="group w-full cursor-pointer [perspective:1200px]"
-      onClick={() => setIsRevealed((value) => !value)}
+      onClick={flipNormalCard}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          setIsRevealed((value) => !value);
+          flipNormalCard();
         }
       }}
       aria-label={isRevealed ? "Show question" : "Show answer"}

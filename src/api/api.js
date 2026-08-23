@@ -34,7 +34,12 @@ api.interceptors.response.use(
       localStorage.removeItem("fullName");
 
       if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+        // Preserve where the user was (e.g. a Study Circle invitation
+        // link) so they land back there after signing back in, instead
+        // of losing that context on a session expiry.
+        const returnTo = `${window.location.pathname}${window.location.search}`;
+        const redirectParam = returnTo && returnTo !== "/" ? `?redirect=${encodeURIComponent(returnTo)}` : "";
+        window.location.href = `/login${redirectParam}`;
       }
     }
 

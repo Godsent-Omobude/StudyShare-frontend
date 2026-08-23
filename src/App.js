@@ -7,11 +7,15 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import GenerateFlashcards from "./pages/GenerateFlashcard";
 import MyFlashcards from "./pages/MyFlashcards";
+import StudyCircles from "./pages/StudyCircles";
+import StudyCircleDetail from "./pages/StudyCircleDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 import Sidebar from "./components/Sidebar";
 import Settings from "./pages/Settings";
+import NotificationBell from "./components/NotificationBell";
+import JoinCircleInvitation from "./pages/JoinCircleInvitation";
 
 function ProtectedLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,45 +24,42 @@ function ProtectedLayout({ children }) {
 
   return (
     <ProtectedRoute>
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+      <div className="min-h-screen bg-slate-50 lg:flex">
+        <Sidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
-      <div className="min-h-screen lg:ml-[290px]">
-        {/* Mobile header. The redesigned desktop layout remains unchanged. */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur lg:hidden">
-          <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur sm:px-6 lg:h-[72px] lg:px-8">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
               aria-label="Open navigation menu"
               aria-expanded={sidebarOpen}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 lg:hidden"
             >
               ☰
             </button>
-            <div className="text-xl font-black tracking-tight text-brand-blue">
-              Study2Gate
-            </div>
-          </div>
 
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-accent text-sm font-bold text-white">
-              {(fullName[0] || "S").toUpperCase()}
+            <div className="ml-auto flex min-w-0 items-center gap-2">
+              <NotificationBell />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-accent text-sm font-bold text-white">
+                {(fullName[0] || "S").toUpperCase()}
+              </div>
+              <div className="hidden max-w-[150px] sm:block">
+                <p className="truncate text-sm font-bold text-slate-800">
+                  {fullName}
+                </p>
+                <p className="truncate text-xs text-slate-500">
+                  {username || "Student"}
+                </p>
+              </div>
             </div>
-            <div className="hidden max-w-[150px] sm:block">
-              <p className="truncate text-sm font-bold text-slate-800">
-                {fullName}
-              </p>
-              <p className="truncate text-xs text-slate-500">
-                {username || "Student"}
-              </p>
-            </div>
-          </div>
-        </header>
+          </header>
 
-        {children}
+          {children}
+        </div>
       </div>
     </ProtectedRoute>
   );
@@ -130,6 +131,33 @@ export default function App() {
           element={
             <ProtectedLayout>
               <MyFlashcards />
+            </ProtectedLayout>
+          }
+        />
+
+        <Route
+          path="/circles"
+          element={
+            <ProtectedLayout>
+              <StudyCircles />
+            </ProtectedLayout>
+          }
+        />
+
+        <Route
+          path="/circles/join/:token"
+          element={
+            <ProtectedLayout>
+              <JoinCircleInvitation />
+            </ProtectedLayout>
+          }
+        />
+
+        <Route
+          path="/circles/:id"
+          element={
+            <ProtectedLayout>
+              <StudyCircleDetail />
             </ProtectedLayout>
           }
         />

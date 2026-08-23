@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Flashcard from "./Flashcard";
+import StreakCelebration from "./StreakCelebration";
 import api from "../api/api";
+
+// Minimum distinct cards a user must engage with (flip in Normal Mode, or
+// answer in Test Yourself) in one sitting for it to count as a study day.
+// Generating or merely opening a set doesn't count on its own.
+const MIN_CARDS_FOR_STREAK = 5;
 
 export default function FlashcardList({
   flashcards = [],
@@ -13,9 +19,19 @@ export default function FlashcardList({
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [scores, setScores] = useState({});
   const [sessionStarted, setSessionStarted] = useState(false);
+  const [sessionFinished, setSessionFinished] = useState(false);
   const [isSavingResult, setIsSavingResult] = useState(false);
   const [resultSaved, setResultSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  // Streak tracking. engagedCards holds every distinct card the user has
+  // flipped (Normal Mode) or answered (Test Yourself) this session — both
+  // modes contribute to the same qualifying count.
+  const [engagedCards, setEngagedCards] = useState(new Set());
+  const [streakRequested, setStreakRequested] = useState(false);
+  const [streakCelebration, setStreakCelebration] = useState(null);
+  const [currentStreak, setCurrentStreak] = useState(null);
+  const [longestStreak, setLongestStreak] = useState(null);
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -24,10 +40,40 @@ export default function FlashcardList({
     setIsEvaluating(false);
     setScores({});
     setSessionStarted(false);
+    setSessionFinished(false);
     setIsSavingResult(false);
     setResultSaved(false);
     setSaveError("");
+    setEngagedCards(new Set());
+    setStreakRequested(false);
+    setStreakCelebration(null);
   }, [flashcards]);
+
+  // Load the user's existing streak once, so it's visible even before
+  // today's session qualifies.
+  useEffect(() => {
+    if (!flashcardSetId) return;
+
+    let cancelled = false;
+
+    api
+      .get("/ai/streak")
+      .then((response) => {
+        if (cancelled) return;
+        const streak = response.data?.streak;
+        if (streak) {
+          setCurrentStreak(streak.currentStreak);
+          setLongestStreak(streak.longestStreak);
+        }
+      })
+      .catch(() => {
+        // Non-critical — the study session itself isn't affected.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [flashcardSetId]);
 
   const currentCard = flashcards[currentIndex];
   const progress = flashcards.length
@@ -40,6 +86,106 @@ export default function FlashcardList({
     const total = Object.values(scores).reduce((sum, score) => sum + score, 0);
     return Math.round(total / completedCount);
   }, [scores, completedCount]);
+
+  const markCardEngaged = (cardKey) => {
+    setEngagedCards((current) => {
+      if (current.has(cardKey)) return current;
+      const next = new Set(current);
+      next.add(cardKey);
+      return next;
+    });
+  };
+
+  // Record a study session the moment the qualifying threshold is
+  // reached — not at the end of the deck — so the streak is protected
+  // even if the user closes the browser right away.
+  useEffect(() => {
+    if (
+      !flashcardSetId ||
+      streakRequested ||
+      engagedCards.size < MIN_CARDS_FOR_STREAK
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    setStreakRequested(true);
+
+    api
+      .post("/ai/streak", { completedCount: engagedCards.size })
+      .then((response) => {
+        if (cancelled) return;
+        const streak = response.data?.streak;
+        if (!streak) return;
+
+        setCurrentStreak(streak.currentStreak);
+        setLongestStreak(streak.longestStreak);
+
+        if (response.data?.streakUpdated) {
+          setStreakCelebration({
+            type: "updated",
+            currentStreak: streak.currentStreak,
+          });
+        } else if (response.data?.alreadyRecorded) {
+          setStreakCelebration({
+            type: "protected",
+            currentStreak: streak.currentStreak,
+          });
+        }
+      })
+      .catch(() => {
+        // Streak tracking is best-effort and shouldn't interrupt studying.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [engagedCards, flashcardSetId, streakRequested]);
+
+  // Explicit completion action, triggered by the "Finish Review" button.
+  // If the background auto-save above already reported to the backend
+  // today (streakRequested), there's nothing left to send — this only
+  // makes the call when the user finishes without ever crossing the
+  // qualifying threshold mid-session (e.g. a short deck), so they still
+  // get an accurate result instead of silence.
+  const finishSession = async () => {
+    if (sessionFinished) return;
+    setSessionFinished(true);
+
+    if (!flashcardSetId || streakRequested) return;
+
+    setStreakRequested(true);
+
+    try {
+      const response = await api.post("/ai/streak", {
+        completedCount: engagedCards.size,
+      });
+      const streak = response.data?.streak;
+      if (!streak) return;
+
+      setCurrentStreak(streak.currentStreak);
+      setLongestStreak(streak.longestStreak);
+
+      if (response.data?.streakUpdated) {
+        setStreakCelebration({
+          type: "updated",
+          currentStreak: streak.currentStreak,
+        });
+      } else if (response.data?.alreadyRecorded) {
+        setStreakCelebration({
+          type: "protected",
+          currentStreak: streak.currentStreak,
+        });
+      } else if (response.data?.qualified === false) {
+        setStreakCelebration({
+          type: "not-qualified",
+          message: response.data.message,
+        });
+      }
+    } catch {
+      // Streak tracking is best-effort and shouldn't block finishing.
+    }
+  };
 
   const switchMode = (nextMode) => {
     setMode(nextMode);
@@ -68,6 +214,7 @@ export default function FlashcardList({
         ...current,
         [currentCard.id ?? currentIndex]: Number(result.score) || 0,
       }));
+      markCardEngaged(currentCard.id ?? currentIndex);
       setSessionStarted(true);
     } catch (error) {
       setEvaluation({
@@ -122,6 +269,8 @@ export default function FlashcardList({
 
   const isLastCard = currentIndex === flashcards.length - 1;
   const testComplete = mode === "test" && isLastCard && evaluation;
+  const canFinish =
+    isLastCard && (mode === "normal" || !!evaluation) && !sessionFinished;
 
   return (
     <section className="mt-8">
@@ -131,6 +280,11 @@ export default function FlashcardList({
           <p className="mt-1 text-sm text-slate-500">
             Card {currentIndex + 1} of {flashcards.length}
           </p>
+          {typeof currentStreak === "number" && currentStreak > 0 && (
+            <p className="mt-1 text-xs font-black text-amber-600">
+              🔥 {currentStreak}-day streak
+            </p>
+          )}
         </div>
 
         <div className="flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
@@ -166,6 +320,34 @@ export default function FlashcardList({
         />
       </div>
 
+      {streakCelebration?.type === "updated" && (
+        <StreakCelebration
+          streak={streakCelebration.currentStreak}
+          longestStreak={longestStreak}
+          onClose={() => setStreakCelebration(null)}
+        />
+      )}
+
+      {streakCelebration?.type === "protected" && (
+        <div className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+          <div>
+            <p className="text-sm font-black text-emerald-900">🔥 Streak protected!</p>
+            <p className="mt-1 text-xs leading-5 text-emerald-700">You already studied today. Come back tomorrow to extend it.</p>
+          </div>
+          <button type="button" onClick={() => setStreakCelebration(null)} className="text-emerald-500 hover:text-emerald-700" aria-label="Dismiss">✕</button>
+        </div>
+      )}
+
+      {streakCelebration?.type === "not-qualified" && (
+        <div className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div>
+            <p className="text-sm font-black text-slate-700">Almost there</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">{streakCelebration.message || `Complete at least ${MIN_CARDS_FOR_STREAK} flashcards to count today toward your streak.`}</p>
+          </div>
+          <button type="button" onClick={() => setStreakCelebration(null)} className="text-slate-400 hover:text-slate-600" aria-label="Dismiss">✕</button>
+        </div>
+      )}
+
       {mode === "test" && (
         <div className="mb-5 rounded-2xl border border-violet-100 bg-violet-50 p-4">
           <p className="text-sm font-bold text-violet-900">
@@ -179,12 +361,18 @@ export default function FlashcardList({
       )}
 
       <Flashcard
+        key={currentIndex}
         front={currentCard.front}
         back={currentCard.back}
         mode={mode}
         evaluation={evaluation}
         isEvaluating={isEvaluating}
         onSubmitAnswer={submitAnswer}
+        onRevealAnswer={() => {
+          if (mode === "normal") {
+            markCardEngaged(currentCard.id ?? currentIndex);
+          }
+        }}
       />
 
       <div className="mt-5 flex items-center justify-between gap-3">
@@ -197,18 +385,32 @@ export default function FlashcardList({
           ← Previous
         </button>
 
-        <button
-          type="button"
-          onClick={next}
-          disabled={
-            isLastCard ||
-            isEvaluating ||
-            (mode === "test" && !evaluation)
-          }
-          className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Next →
-        </button>
+        {canFinish ? (
+          <button
+            type="button"
+            onClick={finishSession}
+            className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
+          >
+            🏁 Finish Review
+          </button>
+        ) : sessionFinished ? (
+          <span className="rounded-xl bg-emerald-50 px-5 py-3 text-sm font-bold text-emerald-700">
+            ✓ Review Finished
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={next}
+            disabled={
+              isLastCard ||
+              isEvaluating ||
+              (mode === "test" && !evaluation)
+            }
+            className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next →
+          </button>
+        )}
       </div>
 
       {mode === "test" && sessionStarted && (
@@ -237,6 +439,18 @@ export default function FlashcardList({
               {Math.round((completedCount / flashcards.length) * 100)}%
             </p>
           </div>
+        </div>
+      )}
+
+      {sessionFinished && mode === "normal" && (
+        <div className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-center">
+          <p className="text-2xl">🎉</p>
+          <h3 className="mt-2 text-xl font-black text-slate-900">
+            Review complete
+          </h3>
+          <p className="mt-1 text-sm text-slate-600">
+            You reviewed {engagedCards.size} of {flashcards.length} cards.
+          </p>
         </div>
       )}
 

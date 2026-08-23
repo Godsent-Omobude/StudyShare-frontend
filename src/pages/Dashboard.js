@@ -8,6 +8,12 @@ export default function Dashboard() {
   const [flashcardSets, setFlashcardSets] = useState([]);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("All");
+  const [streak, setStreak] = useState({
+    currentStreak: 0,
+    longestStreak: 0,
+    lastStudyDate: null,
+    totalStudyDays: 0,
+  });
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -40,9 +46,19 @@ export default function Dashboard() {
     }
   };
 
+  const fetchStreak = async () => {
+    try {
+      const response = await api.get("/ai/streak");
+      if (response.data?.streak) setStreak(response.data.streak);
+    } catch (error) {
+      console.error("Unable to fetch study streak.", error);
+    }
+  };
+
   useEffect(() => {
     fetchFiles();
     fetchFlashcards();
+    fetchStreak();
   }, []);
 
   const handleUploadSubmit = async (event) => {
@@ -146,24 +162,51 @@ export default function Dashboard() {
     });
   }, [files, search, filterType]);
 
-  const totalDownloads = useMemo(
-    () => files.reduce((total, file) => total + Number(file.downloads || 0), 0),
-    [files]
-  );
+  // Builds the last 7 calendar days for the streak panel's day-dot row,
+  // marking a day "done" if it falls inside the current streak's window.
+  const streakDayDots = useMemo(() => {
+    const days = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const lastStudy = streak.lastStudyDate ? new Date(streak.lastStudyDate) : null;
+    if (lastStudy) lastStudy.setHours(0, 0, 0, 0);
+
+    for (let i = 6; i >= 0; i -= 1) {
+      const day = new Date(today);
+      day.setDate(today.getDate() - i);
+
+      let done = false;
+      if (lastStudy && streak.currentStreak > 0) {
+        const streakStart = new Date(lastStudy);
+        streakStart.setDate(lastStudy.getDate() - (streak.currentStreak - 1));
+        done = day >= streakStart && day <= lastStudy;
+      }
+
+      days.push({
+        key: day.toISOString(),
+        label: day.toLocaleDateString(undefined, { weekday: "narrow" }),
+        isToday: day.getTime() === today.getTime(),
+        done,
+      });
+    }
+
+    return days;
+  }, [streak]);
 
   return (
     <main className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-r from-[#07152f] via-[#122d68] to-violet-600 p-6 text-white shadow-xl sm:p-8">
+        <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-r from-[#171238] via-[#4b46d1] to-violet-600 p-6 text-white shadow-xl sm:p-8">
           <div className="flex flex-col gap-6">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-200">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-200">
                 Welcome back
               </p>
               <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
-                Welcome, {userName} 👋
+                Welcome, {userName} 
               </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-blue-100 sm:text-base">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-violet-100 sm:text-base">
                 Your academic workspace for sharing materials, generating
                 flashcards and studying smarter.
               </p>
@@ -172,7 +215,7 @@ export default function Dashboard() {
             <div className="flex flex-wrap gap-3">
               <Link
                 to="/generate-flashcards"
-                className="inline-flex w-fit items-center rounded-xl bg-white px-5 py-3 text-sm font-black text-violet-700 shadow-lg transition hover:bg-blue-50 active:scale-[0.98]"
+                className="inline-flex w-fit items-center rounded-xl bg-white px-5 py-3 text-sm font-black text-violet-700 shadow-lg transition hover:bg-violet-50 active:scale-[0.98]"
               >
                 ✦ Generate Flashcards
               </Link>
@@ -182,27 +225,69 @@ export default function Dashboard() {
               >
                 My Flashcards
               </Link>
+              <Link
+                to="/circles"
+                className="inline-flex w-fit items-center rounded-xl border border-white/30 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+              >
+                👥 Study Circles
+              </Link>
             </div>
+          </div>
+        </section>
 
-            <div className="grid grid-cols-3 divide-x divide-white/10 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/20">
-              <div className="px-3 py-4 text-center sm:px-5">
-                <p className="text-2xl font-black sm:text-3xl">{files.length}</p>
-                <p className="mt-1 text-[11px] font-semibold text-blue-100 sm:text-xs">
-                  Uploads
-                </p>
+        <section className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-black tracking-tight text-slate-800">
+              Your overview
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                ▣
               </div>
-              <div className="px-3 py-4 text-center sm:px-5">
-                <p className="text-2xl font-black sm:text-3xl">{totalDownloads}</p>
-                <p className="mt-1 text-[11px] font-semibold text-blue-100 sm:text-xs">
-                  Downloads
-                </p>
+              <p className="text-2xl font-black tracking-tight text-slate-900">
+                {files.length}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">Uploads</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                ↓
               </div>
-              <div className="px-3 py-4 text-center sm:px-5">
-                <p className="text-2xl font-black sm:text-3xl">{flashcardSets.length}</p>
-                <p className="mt-1 text-[11px] font-semibold text-blue-100 sm:text-xs">
-                  Flashcard Sets
-                </p>
+              <p className="text-2xl font-black tracking-tight text-slate-900">
+                {totalDownloads}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">Downloads</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                ✦
               </div>
+              <p className="text-2xl font-black tracking-tight text-slate-900">
+                {flashcardSets.length}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">
+                Flashcard Sets
+              </p>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                  🔥
+                </div>
+                {streak.currentStreak > 0 && (
+                  <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-700">
+                    Active
+                  </span>
+                )}
+              </div>
+              <p className="text-2xl font-black tracking-tight text-slate-900">
+                {streak.currentStreak}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">
+                Day study streak
+              </p>
             </div>
           </div>
         </section>
@@ -280,7 +365,57 @@ export default function Dashboard() {
             </form>
           </section>
 
-          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="space-y-6">
+            <section className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <h2 className="text-xl font-black text-slate-900">
+                  Study streak 🔥
+                </h2>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-5xl font-black tracking-tight text-slate-900">
+                  {streak.currentStreak}
+                </span>
+                <span className="text-sm font-bold text-amber-700">
+                  {streak.currentStreak === 1 ? "day" : "days"}
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-slate-500">
+                {streak.currentStreak > 0
+                  ? `You're on a roll. Keep studying today to reach ${
+                      streak.currentStreak + 1
+                    }!`
+                  : "Review at least 5 flashcards today to start a streak."}
+              </p>
+              <div className="mt-5 grid grid-cols-7 gap-1.5">
+                {streakDayDots.map((day) => (
+                  <div key={day.key} className="text-center">
+                    <p className="text-[9px] font-bold text-slate-400">
+                      {day.label}
+                    </p>
+                    <div
+                      className={`mx-auto mt-1 flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-black ${
+                        day.done
+                          ? "bg-amber-400 text-white"
+                          : day.isToday
+                          ? "bg-amber-100 text-amber-600 outline outline-2 outline-amber-300 outline-offset-1"
+                          : "bg-slate-100 text-slate-400"
+                      }`}
+                    >
+                      {day.done ? "✓" : day.isToday ? "•" : ""}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {streak.longestStreak > 0 && (
+                <p className="mt-4 text-xs font-semibold text-slate-400">
+                  Longest streak: {streak.longestStreak}{" "}
+                  {streak.longestStreak === 1 ? "day" : "days"}
+                </p>
+              )}
+            </section>
+
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-black text-slate-900">
@@ -334,7 +469,8 @@ export default function Dashboard() {
                 </Link>
               </div>
             )}
-          </section>
+            </section>
+          </div>
         </div>
 
         <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">

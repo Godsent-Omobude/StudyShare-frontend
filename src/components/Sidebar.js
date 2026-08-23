@@ -8,6 +8,7 @@ const navItems = [
   { to: "/upload", label: "Upload Material", icon: "upload" },
   { to: "/generate-flashcards", label: "Generate Flashcards", icon: "spark" },
   { to: "/my-flashcards", label: "My Flashcards", icon: "cards" },
+  { to: "/circles", label: "Study Circles", icon: "circle" },
 ];
 
 function Icon({ name, className = "h-5 w-5" }) {
@@ -27,6 +28,7 @@ function Icon({ name, className = "h-5 w-5" }) {
   if (name === "upload") return <svg {...common}><path d="M12 16V4" /><path d="m7 9 5-5 5 5" /><path d="M5 20h14" /></svg>;
   if (name === "spark") return <svg {...common}><path d="m12 3 1.4 4.1L17.5 9l-4.1 1.4L12 14.5l-1.4-4.1L6.5 9l4.1-1.9z" /><path d="m19 15 .7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7z" /></svg>;
   if (name === "cards") return <svg {...common}><rect x="5" y="4" width="14" height="16" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /><path d="M3 7v10a2 2 0 0 0 2 2" /></svg>;
+  if (name === "circle") return <svg {...common}><circle cx="9" cy="8" r="3" /><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" /><circle cx="17" cy="7" r="2.5" /><path d="M15 13.5c2.5.4 4.5 2.6 4.5 5.5" /></svg>;
   if (name === "settings") return <svg {...common}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V20h-2.6v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.1A1.7 1.7 0 0 0 7.6 10a1.7 1.7 0 0 0-.3-1.9l-.1-.1L9 6.2l.1.1A1.7 1.7 0 0 0 11 6a1.7 1.7 0 0 0 1-1.5V4h2.6v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.1V14h-.1a1.7 1.7 0 0 0-1.1 1z" /></svg>;
   if (name === "admin") return <svg {...common}><path d="M12 3 4 7v5c0 4.5 3.1 7.6 8 9 4.9-1.4 8-4.5 8-9V7z" /><path d="m9 12 2 2 4-4" /></svg>;
   return null;
@@ -67,58 +69,59 @@ export default function Sidebar({ open, onClose }) {
 
   return (
     <>
+      {/* Backdrop is mobile-only — on desktop the sidebar is permanently docked. */}
       {open && (
         <button
           aria-label="Close menu"
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-[2px]"
+          className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-[2px] lg:hidden"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[290px] flex-col overflow-hidden bg-[#061634] text-white shadow-2xl transition-transform duration-300 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col overflow-hidden border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 lg:sticky lg:top-0 lg:z-30 lg:h-screen lg:translate-x-0 lg:shadow-none ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="relative flex h-[76px] items-center gap-3 border-b border-white/10 px-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-accent shadow-lg shadow-blue-950/30">
+        <div className="relative flex h-[76px] items-center gap-3 border-b border-slate-100 px-5">
+          <div className="logo-mark flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-violet-400 text-white shadow-lg shadow-violet-200">
             <span className="text-lg font-black">S</span>
           </div>
-          <div className="text-[23px] font-black tracking-[-0.04em]">
-            Study<span className="text-blue-300">2Gate</span>
+          <div className="text-[21px] font-black tracking-[-0.04em] text-slate-900">
+            Study<span className="logo-mark text-violet-600">2Gate</span>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close navigation menu"
-            className="ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-xl text-slate-400 transition hover:bg-white/10 hover:text-white"
+            className="ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 lg:hidden"
           >
             ×
           </button>
         </div>
 
-        <div className="mx-4 mt-5 rounded-2xl border border-white/10 bg-white/[0.045] p-4">
+        <div className="mx-4 mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
           <div className="flex items-center gap-3">
             {profilePictureUrl ? (
               <img
                 src={profilePictureUrl}
                 alt="Profile"
-                className="h-12 w-12 rounded-2xl object-cover ring-2 ring-blue-300/20"
+                className="h-12 w-12 rounded-2xl object-cover ring-2 ring-violet-200"
               />
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-accent text-lg font-black shadow-lg">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-violet-400 text-lg font-black text-white shadow-lg shadow-violet-200">
                 {(fullName[0] || "S").toUpperCase()}
               </div>
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-extrabold">{fullName}</p>
-              <p className="mt-0.5 truncate text-xs text-slate-400">{username || "Student account"}</p>
+              <p className="truncate text-sm font-extrabold text-slate-900">{fullName}</p>
+              <p className="mt-0.5 truncate text-xs text-slate-500">{username || "Student account"}</p>
             </div>
           </div>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 py-6">
-          <p className="px-3 pb-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
+          <p className="px-3 pb-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400">
             Study
           </p>
 
@@ -132,8 +135,8 @@ export default function Sidebar({ open, onClose }) {
                 className={({ isActive }) =>
                   `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition ${
                     isActive
-                      ? "bg-brand-accent text-white shadow-lg shadow-blue-950/25"
-                      : "text-slate-300 hover:bg-white/[0.07] hover:text-white"
+                      ? "bg-violet-50 text-violet-700"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
                   }`
                 }
               >
@@ -142,8 +145,8 @@ export default function Sidebar({ open, onClose }) {
                     <span
                       className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
                         isActive
-                          ? "bg-white/15 text-white"
-                          : "bg-white/[0.04] text-slate-400 group-hover:text-blue-200"
+                          ? "bg-violet-100 text-violet-700"
+                          : "bg-slate-100 text-slate-400 group-hover:text-violet-600"
                       }`}
                     >
                       <Icon name={item.icon} />
@@ -155,7 +158,7 @@ export default function Sidebar({ open, onClose }) {
             ))}
           </div>
 
-          <p className="mt-8 px-3 pb-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
+          <p className="mt-8 px-3 pb-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400">
             Account
           </p>
 
@@ -166,12 +169,12 @@ export default function Sidebar({ open, onClose }) {
               className={({ isActive }) =>
                 `mb-1 flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition ${
                   isActive
-                    ? "bg-brand-accent text-white"
-                    : "text-slate-300 hover:bg-white/[0.07] hover:text-white"
+                    ? "bg-violet-50 text-violet-700"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
                 }`
               }
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
                 <Icon name="admin" />
               </span>
               Admin Workspace
@@ -184,23 +187,29 @@ export default function Sidebar({ open, onClose }) {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition ${
                 isActive
-                  ? "bg-brand-accent text-white"
-                  : "text-slate-300 hover:bg-white/[0.07] hover:text-white"
+                  ? "bg-violet-50 text-violet-700"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
               }`
             }
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
               <Icon name="settings" />
             </span>
             Settings
           </NavLink>
         </nav>
 
-        <div className="border-t border-white/10 p-4">
+        <div className="border-t border-slate-100 p-4">
+          <div className="mb-3 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-4">
+            <p className="text-xs font-black text-slate-800">Study smarter 🚀</p>
+            <p className="mt-1 text-[11px] leading-4 text-slate-500">
+              Keep your study streak alive and make every session count.
+            </p>
+          </div>
           <button
             type="button"
             onClick={logout}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/15 bg-red-400/[0.04] px-4 py-3 text-sm font-extrabold text-red-300 transition hover:bg-red-400/10"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-extrabold text-red-600 transition hover:bg-red-100"
           >
             <span className="text-base">↪</span>
             Log out

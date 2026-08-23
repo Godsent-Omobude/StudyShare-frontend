@@ -130,6 +130,9 @@ export default function MyFlashcards() {
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
                   {selectedSet.flashcards?.length || 0} flashcards
+                  {selectedSet.isOwner === false && selectedSet.createdByUsername
+                    ? ` · Shared by ${selectedSet.createdByUsername}`
+                    : ""}
                 </p>
                 {selectedSet.lastPracticeScore !== null &&
                   selectedSet.lastPracticeScore !== undefined && (
@@ -139,12 +142,14 @@ export default function MyFlashcards() {
                   )}
               </div>
 
-              <button
-                onClick={() => deleteSet(selectedSet.id)}
-                className="rounded-xl border border-red-200 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
-              >
-                Delete Set
-              </button>
+              {selectedSet.isOwner !== false && (
+                <button
+                  onClick={() => deleteSet(selectedSet.id)}
+                  className="rounded-xl border border-red-200 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
+                >
+                  Delete Set
+                </button>
+              )}
             </div>
 
             <FlashcardList

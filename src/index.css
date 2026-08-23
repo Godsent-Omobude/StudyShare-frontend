@@ -17,6 +17,16 @@ body {
   --text-main: #0f172a;
   --text-muted: #64748b;
   --border: #e2e8f0;
+
+  --accent-50: color-mix(in srgb, var(--accent) 6%, white);
+  --accent-100: var(--accent-soft);
+  --accent-200: color-mix(in srgb, var(--accent) 25%, white);
+  --accent-300: color-mix(in srgb, var(--accent) 40%, white);
+  --accent-400: color-mix(in srgb, var(--accent) 65%, white);
+  --accent-500: color-mix(in srgb, var(--accent) 85%, white);
+  --accent-600: var(--accent);
+  --accent-700: var(--accent-hover);
+  --accent-900: color-mix(in srgb, var(--accent) 65%, black);
 }
 
 html[data-accent="red"] {
@@ -40,30 +50,145 @@ html[data-accent="yellow"] {
   --accent-hover: #a16207;
 }
 
-/* Let common existing accent classes follow the selected Study2Gate accent. */
-html[data-accent] .bg-violet-600,
-html[data-accent] .bg-blue-600,
-html[data-accent] .bg-\[\#1464d2\] {
+html[data-accent] .bg-violet-600:not(.logo-mark),
+html[data-accent] .bg-blue-600:not(.logo-mark),
+html[data-accent] .bg-brand-accent:not(.logo-mark),
+html[data-accent] .bg-brand-blue:not(.logo-mark),
+html[data-accent] .bg-\[\#1464d2\]:not(.logo-mark),
+html[data-accent] .bg-\[\#635bff\]:not(.logo-mark) {
   background-color: var(--accent) !important;
 }
-html[data-accent] .hover\:bg-violet-700:hover,
-html[data-accent] .hover\:bg-blue-700:hover,
-html[data-accent] .hover\:bg-\[\#0d55b8\]:hover {
-  background-color: var(--accent-hover) !important;
-}
-html[data-accent] .text-violet-400,
-html[data-accent] .text-violet-700,
-html[data-accent] .text-blue-700,
-html[data-accent] .text-brand-blue {
+html[data-accent] .text-violet-600:not(.logo-mark),
+html[data-accent] .text-violet-400:not(.logo-mark),
+html[data-accent] .text-violet-500:not(.logo-mark),
+html[data-accent] .text-violet-700:not(.logo-mark),
+html[data-accent] .text-blue-600:not(.logo-mark),
+html[data-accent] .text-blue-700:not(.logo-mark),
+html[data-accent] .text-purple-700:not(.logo-mark),
+html[data-accent] .text-brand-blue:not(.logo-mark),
+html[data-accent] .text-\[\#635bff\]:not(.logo-mark) {
   color: var(--accent) !important;
 }
-html[data-accent] .bg-violet-50,
-html[data-accent] .bg-blue-50 {
+html[data-accent] .group:hover .group-hover\:text-violet-600:not(.logo-mark) {
+  color: var(--accent) !important;
+}
+html[data-accent] .border-violet-500:not(.logo-mark),
+html[data-accent] .border-violet-600:not(.logo-mark),
+html[data-accent] .border-blue-500:not(.logo-mark),
+html[data-accent] .border-brand-blue:not(.logo-mark) {
+  border-color: var(--accent) !important;
+}
+html[data-accent] .ring-brand-blue:not(.logo-mark),
+html[data-accent] .focus\:ring-brand-blue:focus:not(.logo-mark) {
+  --tw-ring-color: var(--accent) !important;
+}
+html[data-accent] .to-violet-600:not(.logo-mark),
+html[data-accent] .to-blue-700:not(.logo-mark),
+html[data-accent] .to-\[\#635bff\]:not(.logo-mark) {
+  --tw-gradient-to: var(--accent) !important;
+}
+html[data-accent] .from-violet-600:not(.logo-mark) {
+  --tw-gradient-from: var(--accent) !important;
+}
+html[data-accent] .via-\[\#4b46d1\]:not(.logo-mark),
+html[data-accent] .via-\[\#2f2a8f\]:not(.logo-mark) {
+  --tw-gradient-stops: var(--tw-gradient-from), var(--accent-hover), var(--tw-gradient-to) !important;
+}
+html[data-accent] .hover\:bg-\[\#5148e8\]:hover:not(.logo-mark) {
+  background-color: var(--accent-hover) !important;
+}
+
+html[data-accent] .hover\:bg-violet-700:hover:not(.logo-mark),
+html[data-accent] .hover\:bg-blue-700:hover:not(.logo-mark),
+html[data-accent] .hover\:bg-\[\#0d55b8\]:hover:not(.logo-mark) {
+  background-color: var(--accent-hover) !important;
+}
+html[data-accent] .hover\:text-brand-blue:hover:not(.logo-mark) {
+  color: var(--accent-hover) !important;
+}
+
+/* -- soft background / "50"-"100" -- */
+html[data-accent] .bg-violet-50:not(.logo-mark),
+html[data-accent] .bg-blue-50:not(.logo-mark),
+html[data-accent] .bg-violet-100:not(.logo-mark),
+html[data-accent] .bg-purple-50:not(.logo-mark),
+html[data-accent] .bg-purple-100:not(.logo-mark) {
   background-color: var(--accent-soft) !important;
 }
-html[data-accent] .border-blue-200,
-html[data-accent] .border-violet-200 {
-  border-color: color-mix(in srgb, var(--accent) 25%, white) !important;
+/* Same soft tint, but with Tailwind's opacity-modifier suffix (bg-violet-50/NN)
+   used for translucent info-card/highlight backgrounds. */
+html[data-accent] .bg-violet-50\/40:not(.logo-mark),
+html[data-accent] .bg-violet-50\/50:not(.logo-mark),
+html[data-accent] .bg-violet-50\/60:not(.logo-mark) {
+  background-color: color-mix(in srgb, var(--accent-soft) 65%, transparent) !important;
+}
+/* Loading-spinner top-border accent (border-t-violet-700). */
+html[data-accent] .border-t-violet-700:not(.logo-mark) {
+  border-top-color: var(--accent-hover) !important;
+}
+html[data-accent] .hover\:bg-violet-50:hover:not(.logo-mark),
+html[data-accent] .hover\:bg-blue-50:hover:not(.logo-mark),
+html[data-accent] .hover\:bg-violet-100:hover:not(.logo-mark),
+html[data-accent] .hover\:bg-purple-100:hover:not(.logo-mark) {
+  background-color: var(--accent-soft) !important;
+}
+html[data-accent] .from-violet-50:not(.logo-mark) {
+  --tw-gradient-from: var(--accent-50) !important;
+}
+
+/* -- borders / rings, lighter shades -- */
+html[data-accent] .border-blue-200:not(.logo-mark),
+html[data-accent] .border-violet-200:not(.logo-mark) {
+  border-color: var(--accent-200) !important;
+}
+html[data-accent] .hover\:border-blue-200:hover:not(.logo-mark) {
+  border-color: var(--accent-200) !important;
+}
+html[data-accent] .border-violet-100:not(.logo-mark) {
+  border-color: var(--accent-100) !important;
+}
+html[data-accent] .border-violet-300:not(.logo-mark) {
+  border-color: var(--accent-300) !important;
+}
+html[data-accent] .focus\:border-violet-500:focus:not(.logo-mark),
+html[data-accent] .focus\:border-blue-500:focus:not(.logo-mark) {
+  border-color: var(--accent) !important;
+}
+html[data-accent] .ring-violet-100:not(.logo-mark),
+html[data-accent] .ring-blue-100:not(.logo-mark),
+html[data-accent] .ring-violet-200:not(.logo-mark),
+html[data-accent] .ring-blue-50:not(.logo-mark) {
+  --tw-ring-color: var(--accent-soft) !important;
+}
+html[data-accent] .focus\:ring-violet-100:focus:not(.logo-mark),
+html[data-accent] .focus\:ring-blue-100:focus:not(.logo-mark) {
+  --tw-ring-color: var(--accent-soft) !important;
+}
+
+/* -- shadow tints (Tailwind's shadow-{color} sets --tw-shadow-color) -- */
+html[data-accent] .shadow-violet-100:not(.logo-mark),
+html[data-accent] .shadow-violet-200:not(.logo-mark),
+html[data-accent] .shadow-blue-100:not(.logo-mark),
+html[data-accent] .shadow-blue-200:not(.logo-mark) {
+  --tw-shadow-color: var(--accent-soft) !important;
+}
+
+/* -- lighter tinted text (badges, labels, hero-panel copy on dark bg) -- */
+html[data-accent] .text-violet-100:not(.logo-mark),
+html[data-accent] .text-blue-100:not(.logo-mark),
+html[data-accent] .text-blue-50:not(.logo-mark) {
+  color: var(--accent-100) !important;
+}
+html[data-accent] .text-violet-200:not(.logo-mark),
+html[data-accent] .text-blue-200:not(.logo-mark),
+html[data-accent] .text-blue-300:not(.logo-mark) {
+  color: var(--accent-200) !important;
+}
+html[data-accent] .text-violet-900:not(.logo-mark) {
+  color: var(--accent-900) !important;
+}
+html[data-accent] .to-violet-400:not(.logo-mark) {
+  --tw-gradient-to: var(--accent-400) !important;
 }
 
 /* Theme */
@@ -107,4 +232,33 @@ html[data-theme="dark"] select {
   background-color: #1e293b !important;
   color: #f8fafc !important;
   border-color: #475569 !important;
+}
+
+
+/* Streak celebration: lightweight CSS-only effects, no animation dependency. */
+@keyframes streakFlamePop {
+  0% { transform: scale(.55) rotate(-8deg); opacity: 0; }
+  55% { transform: scale(1.08) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes streakParticle {
+  0% { transform: translate3d(0, 20px, 0) scale(.3); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate3d(0, -90px, 0) scale(1); opacity: 0; }
+}
+
+.streak-flame {
+  animation: streakFlamePop .65s cubic-bezier(.2, .9, .25, 1.2) both;
+}
+
+.streak-particle {
+  animation: streakParticle 1.7s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-flame,
+  .streak-particle {
+    animation: none !important;
+  }
 }

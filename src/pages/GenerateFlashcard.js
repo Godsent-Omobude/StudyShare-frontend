@@ -1,8 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import api from "../api/api";
 import FlashcardList from "../components/FlashcardList";
 
+const isPdfFile = (file) =>
+  !!file &&
+  (file.type === "application/pdf" ||
+    file.name?.toLowerCase().endsWith(".pdf"));
+
 export default function GenerateFlashcards() {
+  const [searchParams] = useSearchParams();
+  const circleId = searchParams.get("circleId");
+  const [circleName, setCircleName] = useState("");
+
   const [title, setTitle] = useState("");
   const [document, setDocument] = useState(null);
   const [count, setCount] = useState("20");
@@ -11,6 +21,110 @@ export default function GenerateFlashcards() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [flashcards, setFlashcards] = useState([]);
+
+  // Page-range selection (PDF only). totalPages stays null for DOCX files
+  // or until the PDF has been analysed.
+  const [totalPages, setTotalPages] = useState(null);
+  const [pdfInfoLoading, setPdfInfoLoading] = useState(false);
+  const [startPage, setStartPage] = useState("");
+  const [endPage, setEndPage] = useState("");
+  const [rangeError, setRangeError] = useState("");
+
+  const isPdf = isPdfFile(document);
+
+  useEffect(() => {
+    if (!circleId) {
+      setCircleName("");
+      return;
+    }
+
+    let cancelled = false;
+    api
+      .get(`/circles/${circleId}`)
+      .then((response) => {
+        if (!cancelled) setCircleName(response.data?.name || "");
+      })
+      .catch(() => {
+        if (!cancelled) setCircleName("");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [circleId]);
+
+  const validateRange = (start, end, pages) => {
+    const parsedStart = Number(start);
+    const parsedEnd = Number(end);
+
+    if (
+      start === "" ||
+      end === "" ||
+      !Number.isInteger(parsedStart) ||
+      !Number.isInteger(parsedEnd)
+    ) {
+      return "Both fields must contain valid page numbers.";
+    }
+    if (parsedStart < 1) {
+      return "Start page cannot be less than 1.";
+    }
+    if (pages && parsedEnd > pages) {
+      return `Invalid page range. This PDF has ${pages} pages. Please select pages 1–${pages}.`;
+    }
+    if (parsedStart > parsedEnd) {
+      return "Start page cannot be greater than end page.";
+    }
+    return "";
+  };
+
+  const handleFileChange = async (file) => {
+    setDocument(file);
+    setTotalPages(null);
+    setStartPage("");
+    setEndPage("");
+    setRangeError("");
+    setError("");
+
+    if (!file || !isPdfFile(file)) {
+      return;
+    }
+
+    const infoFormData = new FormData();
+    infoFormData.append("document", file);
+
+    try {
+      setPdfInfoLoading(true);
+      const response = await api.post("/ai/pdf-info", infoFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const pages = response.data?.totalPages;
+      if (pages) {
+        setTotalPages(pages);
+        // Default selection covers the whole PDF, so existing behaviour
+        // (generate from the entire document) isn't disrupted.
+        setStartPage("1");
+        setEndPage(String(pages));
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Unable to read this PDF's page count. Please try another file."
+      );
+    } finally {
+      setPdfInfoLoading(false);
+    }
+  };
+
+  const handleStartPageChange = (value) => {
+    setStartPage(value);
+    setRangeError(validateRange(value, endPage, totalPages));
+  };
+
+  const handleEndPageChange = (value) => {
+    setEndPage(value);
+    setRangeError(validateRange(startPage, value, totalPages));
+  };
 
   const generateFlashcards = async (event) => {
     event.preventDefault();
@@ -23,11 +137,28 @@ export default function GenerateFlashcards() {
       return;
     }
 
+    if (isPdf) {
+      const validationMessage = validateRange(startPage, endPage, totalPages);
+      if (validationMessage) {
+        setRangeError(validationMessage);
+        return;
+      }
+    }
+
     const formData = new FormData();
     formData.append("title", title);
     formData.append("document", document);
     formData.append("count", count);
     formData.append("difficulty", difficulty);
+
+    if (isPdf && startPage && endPage) {
+      formData.append("startPage", startPage);
+      formData.append("endPage", endPage);
+    }
+
+    if (circleId) {
+      formData.append("circleId", circleId);
+    }
 
     try {
       setLoading(true);
@@ -69,6 +200,12 @@ export default function GenerateFlashcards() {
           <p className="mt-1 text-sm text-slate-500">
             Upload your study material and let AI turn it into revision cards.
           </p>
+          {circleId && (
+            <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700">
+              👥 Generating for {circleName || "your Study Circle"} — this set
+              will be shared with the whole circle.
+            </div>
+          )}
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -99,10 +236,72 @@ export default function GenerateFlashcards() {
                     type="file"
                     accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     className="hidden"
-                    onChange={(e) => setDocument(e.target.files?.[0] || null)}
+                    onChange={(e) =>
+                      handleFileChange(e.target.files?.[0] || null)
+                    }
                   />
                 </label>
+                {isPdf && (
+                  <p className="mt-2 text-xs font-semibold text-slate-500">
+                    {pdfInfoLoading
+                      ? "Analysing PDF..."
+                      : totalPages
+                      ? `This PDF has ${totalPages} pages.`
+                      : null}
+                  </p>
+                )}
               </div>
+
+              {isPdf && (
+                <div>
+                  <label className="text-sm font-bold text-slate-700">
+                    Flashcard pages
+                  </label>
+                  <div className="mt-2 grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="from-page"
+                        className="text-xs font-semibold text-slate-500"
+                      >
+                        From page
+                      </label>
+                      <input
+                        id="from-page"
+                        type="number"
+                        min={1}
+                        max={totalPages || undefined}
+                        disabled={pdfInfoLoading || !totalPages}
+                        value={startPage}
+                        onChange={(e) => handleStartPageChange(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-100 disabled:text-slate-400"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="to-page"
+                        className="text-xs font-semibold text-slate-500"
+                      >
+                        To page
+                      </label>
+                      <input
+                        id="to-page"
+                        type="number"
+                        min={1}
+                        max={totalPages || undefined}
+                        disabled={pdfInfoLoading || !totalPages}
+                        value={endPage}
+                        onChange={(e) => handleEndPageChange(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-100 disabled:text-slate-400"
+                      />
+                    </div>
+                  </div>
+                  {rangeError && (
+                    <p className="mt-2 text-xs font-semibold text-red-600">
+                      {rangeError}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="text-sm font-bold text-slate-700">
@@ -160,15 +359,31 @@ export default function GenerateFlashcards() {
               {message && (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
                   {message}
+                  {circleId && (
+                    <>
+                      {" "}
+                      <Link to={`/circles/${circleId}?tab=flashcards`} className="underline">
+                        View in circle →
+                      </Link>
+                    </>
+                  )}
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={
+                  loading ||
+                  pdfInfoLoading ||
+                  (isPdf && (!totalPages || !!rangeError))
+                }
                 className="w-full rounded-xl bg-violet-600 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Generating..." : "✦ Generate Flashcards"}
+                {loading
+                  ? "Generating..."
+                  : pdfInfoLoading
+                  ? "Analysing PDF..."
+                  : "✦ Generate Flashcards"}
               </button>
             </form>
           </section>
