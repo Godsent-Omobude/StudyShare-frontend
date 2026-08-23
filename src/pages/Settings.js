@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../api/api";
 import { Eye, EyeOff } from "lucide-react";
+import PasswordRequirementsChecklist from "../components/PasswordRequirementsChecklist";
+import { isPasswordValid } from "../utils/passwordRequirements";
 
 const themes = ["light", "dark", "system"];
 const accents = [
@@ -177,6 +179,12 @@ export default function Settings() {
 
   const changePassword = async (event) => {
     event.preventDefault();
+
+    if (!isPasswordValid(newPassword)) {
+      showError("New password does not meet the requirements below.");
+      return;
+    }
+
     try {
       setSaving(true);
       await api.patch("/settings/password", {
@@ -327,12 +335,13 @@ export default function Settings() {
               </button>
             </div>
             <div className="relative">
-              <input type={showNewPassword ? "text" : "password"} required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New password" className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm outline-none focus:border-[var(--accent)]" />
+              <input type={showNewPassword ? "text" : "password"} required minLength={12} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New password" className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm outline-none focus:border-[var(--accent)]" />
               <button type="button" onClick={() => setShowNewPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700" aria-label={showNewPassword ? "Hide password" : "Show password"}>
                 {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
+              <PasswordRequirementsChecklist password={newPassword} />
             </div>
-            <button disabled={saving} className="w-fit rounded-xl bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white">
+            <button disabled={saving || !isPasswordValid(newPassword)} className="w-fit rounded-xl bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60">
               Change password
             </button>
           </form>

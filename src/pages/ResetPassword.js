@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import api from "../api/api";
 import { Eye, EyeOff } from "lucide-react";
+import PasswordRequirementsChecklist from "../components/PasswordRequirementsChecklist";
+import { isPasswordValid } from "../utils/passwordRequirements";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -24,8 +26,8 @@ export default function ResetPassword() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (!isPasswordValid(password)) {
+      setError("Password does not meet the requirements below.");
       return;
     }
 
@@ -51,10 +53,10 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07152f] px-4 py-10">
+    <div className="min-h-screen bg-[#171238] px-4 py-10">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
         <div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl sm:p-10">
-          <div className="text-3xl font-black text-blue-700">
+          <div className="logo-mark text-3xl font-black text-blue-700">
             Study<span className="text-slate-900">Share</span>
           </div>
 
@@ -85,10 +87,10 @@ export default function ResetPassword() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={6}
+                  minLength={12}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
+                  placeholder="At least 12 characters"
                   autoComplete="new-password"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 outline-none focus:border-blue-500 focus:bg-white"
                 />
@@ -101,6 +103,7 @@ export default function ResetPassword() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+              <PasswordRequirementsChecklist password={password} />
             </div>
 
             <div>
@@ -129,7 +132,7 @@ export default function ResetPassword() {
 
             <button
               type="submit"
-              disabled={loading || !token || Boolean(message)}
+              disabled={loading || !token || Boolean(message) || !isPasswordValid(password)}
               className="w-full rounded-xl bg-blue-600 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:opacity-60"
             >
               {loading ? "Resetting..." : "Reset Password"}

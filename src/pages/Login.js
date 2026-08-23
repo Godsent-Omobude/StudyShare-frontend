@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api/api";
 import logo from "../assets/study2gate-logo.png";
 import { Eye, EyeOff } from "lucide-react";
+import { safeInternalPath } from "../utils/safeRedirect";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -11,6 +12,11 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Where to send the user after a successful login — e.g. back to the
+  // Study Circle invitation they were on before being asked to sign in.
+  // Only ever an internal route: never trust this for an off-site redirect.
+  const redirectTo = safeInternalPath(searchParams.get("redirect"), "/");
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -21,6 +27,7 @@ export default function Login() {
       const response = await api.post("/auth/login", { username, password });
 
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("userId", String(response.data.id || ""));
       localStorage.setItem("fullName", response.data.fullName || username);
       localStorage.setItem("username", response.data.username || username);
       localStorage.setItem("email", response.data.email || "");
@@ -30,19 +37,23 @@ export default function Login() {
       localStorage.setItem("theme", response.data.theme || "system");
       localStorage.setItem("accentColor", response.data.accentColor || "blue");
 
-      navigate("/");
+      navigate(redirectTo);
     } catch (err) {
-      setError(err.response?.data?.message || "Authentication system failure.");
+      if (err.response?.status === 429) {
+        setError(err.response?.data?.message || "Too many login attempts. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || "Authentication system failure.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#07152f] px-4 py-10">
+    <div className="min-h-screen bg-[#171238] px-4 py-10">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
         <div className="grid w-full overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-2">
-          <div className="hidden bg-gradient-to-br from-[#07152f] to-blue-700 p-12 text-white lg:block">
+          <div className="hidden bg-gradient-to-br from-[#171238] to-blue-700 p-12 text-white lg:block">
             <div className="flex items-center gap-3">
               <img
                 src={logo}
@@ -50,7 +61,7 @@ export default function Login() {
                 className="h-12 w-12 rounded-2xl object-contain"
               />
               <div className="text-3xl font-black tracking-tight">
-                Study<span className="text-blue-300">Share</span>
+                Study<span className="logo-mark text-blue-300">Share</span>
               </div>
             </div>
             <div className="mt-24">
@@ -75,7 +86,7 @@ export default function Login() {
                   className="h-14 w-14 rounded-2xl object-contain"
                 />
                 <span className="text-2xl font-black tracking-tight text-slate-900">
-                  Study<span className="text-blue-600">2Gate</span>
+                  Study<span className="logo-mark text-blue-600">2Gate</span>
                 </span>
               </div>
 

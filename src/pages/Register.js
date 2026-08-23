@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
 import study2gateLogo from "../assets/study2gate-logo.png";
 import { Eye, EyeOff } from "lucide-react";
+import PasswordRequirementsChecklist from "../components/PasswordRequirementsChecklist";
+import { isPasswordValid } from "../utils/passwordRequirements";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
@@ -43,6 +45,11 @@ export default function Register() {
     event.preventDefault();
     setError("");
 
+    if (!isPasswordValid(password)) {
+      setError("Password does not meet the requirements below.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -70,6 +77,7 @@ export default function Register() {
       });
 
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("userId", String(response.data.id || ""));
       localStorage.setItem("fullName", response.data.fullName || fullName);
       localStorage.setItem("username", response.data.username || username);
       localStorage.setItem("email", response.data.email || email);
@@ -85,16 +93,16 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07152f] px-4 py-6 sm:py-10">
+    <div className="min-h-screen bg-[#171238] px-4 py-6 sm:py-10">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-md items-center justify-center">
         <div className="w-full overflow-hidden rounded-3xl bg-white shadow-2xl">
-          <div className="bg-gradient-to-br from-[#07152f] via-[#0b2d66] to-[#1464d2] px-6 pb-7 pt-8 text-white">
+          <div className="bg-gradient-to-br from-[#171238] via-[#2f2a8f] to-[#635bff] px-6 pb-7 pt-8 text-white">
             <div className="flex items-center justify-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white/15 shadow-lg ring-1 ring-white/20">
                 <img src={study2gateLogo} alt="Study2Gate" className="h-full w-full object-cover" />
               </div>
               <h1 className="text-3xl font-black tracking-tight">
-                Study<span className="text-blue-200">2Gate</span>
+                Study<span className="logo-mark text-blue-200">2Gate</span>
               </h1>
             </div>
             <div className="mt-6 text-center">
@@ -197,7 +205,7 @@ export default function Register() {
                   <input
                     type={showPassword ? "text" : "password"}
                     required
-                    minLength={6}
+                    minLength={12}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a password"
@@ -213,6 +221,7 @@ export default function Register() {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
+                <PasswordRequirementsChecklist password={password} />
               </div>
 
               <div>
@@ -241,8 +250,13 @@ export default function Register() {
 
               <button
                 type="submit"
-                disabled={loading || usernameStatus === "taken" || usernameStatus === "checking"}
-                className="w-full rounded-xl bg-[#1464d2] py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-[#0d55b8] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={
+                  loading ||
+                  usernameStatus === "taken" ||
+                  usernameStatus === "checking" ||
+                  !isPasswordValid(password)
+                }
+                className="w-full rounded-xl bg-[#635bff] py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-[#5148e8] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Creating..." : "Create Account"}
               </button>
@@ -250,13 +264,13 @@ export default function Register() {
 
             <p className="mt-6 text-center text-sm text-slate-500">
               Already registered?{" "}
-              <Link to="/login" className="font-bold text-[#1464d2] hover:underline">
+              <Link to="/login" className="font-bold text-[#635bff] hover:underline">
                 Log in
               </Link>
             </p>
 
             <div className="mt-7 border-t border-slate-100 pt-5 text-center">
-              <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#1464d2]">
+              <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#635bff]">
                 A STUDENT PLATFORM BY GODSENT OMOBUDE
               </p>
             </div>
