@@ -298,7 +298,6 @@ function MembersTab({ circleId, myRole, onRoleChanged }) {
     } catch {
       // Non-critical.
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [circleId, canManage]);
 
   useEffect(() => {

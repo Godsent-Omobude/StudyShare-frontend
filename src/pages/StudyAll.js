@@ -53,7 +53,6 @@ export default function StudyAll() {
 
   useEffect(() => {
     load(dueOnly);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dueOnly]);
 
   const toggleDueOnly = () => {
