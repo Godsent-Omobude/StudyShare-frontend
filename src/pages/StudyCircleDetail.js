@@ -298,6 +298,7 @@ function MembersTab({ circleId, myRole, onRoleChanged }) {
     } catch {
       // Non-critical.
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [circleId, canManage]);
 
   useEffect(() => {
@@ -575,6 +576,387 @@ function JoinCodeManagement({ circleId }) {
   </section>;
 }
 
+const RSVP_LABEL = { GOING: "Going", MAYBE: "Maybe", DECLINED: "Can't go" };
+const RSVP_STYLE = {
+  GOING: "bg-emerald-600 text-white",
+  MAYBE: "bg-amber-500 text-white",
+  DECLINED: "bg-slate-400 text-white",
+};
+
+function SessionComposer({ circleId, onCreated, onCancel }) {
+  const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+  const [scheduledFor, setScheduledFor] = useState("");
+  const [durationMinutes, setDurationMinutes] = useState(60);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!title.trim() || !scheduledFor) {
+      setError("Please give the session a title and a date/time.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+      const response = await api.post(`/circles/${circleId}/sessions`, {
+        title: title.trim(),
+        location: location.trim() || undefined,
+        description: description.trim() || undefined,
+        scheduledFor: new Date(scheduledFor).toISOString(),
+        durationMinutes: Number(durationMinutes) || 60,
+      });
+      onCreated(response.data);
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to schedule this session.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="mb-5 rounded-2xl border border-violet-200 bg-violet-50/40 p-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Session title (e.g. Midterm Review)"
+          className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+        />
+        <input
+          type="datetime-local"
+          value={scheduledFor}
+          onChange={(e) => setScheduledFor(e.target.value)}
+          className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+        />
+        <input
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="Location or call link (optional)"
+          className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+        />
+        <input
+          type="number"
+          min="5"
+          max="720"
+          value={durationMinutes}
+          onChange={(e) => setDurationMinutes(e.target.value)}
+          placeholder="Duration (minutes)"
+          className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+        />
+      </div>
+      <textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="What are you covering? (optional)"
+        rows={2}
+        className="mt-3 w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+      />
+      {error && <p className="mt-2 text-xs font-semibold text-red-600">{error}</p>}
+      <div className="mt-3 flex gap-2">
+        <button type="submit" disabled={saving} className="rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-violet-700 disabled:opacity-50">
+          {saving ? "Scheduling..." : "Schedule Session"}
+        </button>
+        <button type="button" onClick={onCancel} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50">
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function SessionsTab({ circleId }) {
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showComposer, setShowComposer] = useState(false);
+  const [includePast, setIncludePast] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/circles/${circleId}/sessions`, {
+        params: { includePast: includePast ? "true" : "false" },
+      });
+      setSessions(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to load study sessions.");
+    } finally {
+      setLoading(false);
+    }
+  }, [circleId, includePast]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const rsvp = async (sessionId, status) => {
+    try {
+      const response = await api.post(`/circles/${circleId}/sessions/${sessionId}/rsvp`, { status });
+      setSessions((current) => current.map((s) => (s.id === sessionId ? response.data : s)));
+    } catch (err) {
+      window.alert(err.response?.data?.message || "Unable to save your RSVP.");
+    }
+  };
+
+  const cancelSession = async (sessionId) => {
+    if (!window.confirm("Cancel this study session?")) return;
+    try {
+      await api.delete(`/circles/${circleId}/sessions/${sessionId}`);
+      setSessions((current) => current.filter((s) => s.id !== sessionId));
+    } catch (err) {
+      window.alert(err.response?.data?.message || "Unable to cancel this session.");
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <label className="flex items-center gap-2 text-xs font-bold text-slate-500">
+          <input type="checkbox" checked={includePast} onChange={(e) => setIncludePast(e.target.checked)} />
+          Show past sessions
+        </label>
+        {!showComposer && (
+          <button onClick={() => setShowComposer(true)} className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-violet-700">
+            + Schedule Session
+          </button>
+        )}
+      </div>
+
+      {showComposer && (
+        <SessionComposer
+          circleId={circleId}
+          onCancel={() => setShowComposer(false)}
+          onCreated={(session) => {
+            setSessions((current) => [...current, session].sort((a, b) => new Date(a.scheduledFor) - new Date(b.scheduledFor)));
+            setShowComposer(false);
+          }}
+        />
+      )}
+
+      {loading ? (
+        <div className="animate-pulse rounded-3xl bg-white p-10 text-center text-sm text-slate-400 shadow-sm">Loading sessions...</div>
+      ) : error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>
+      ) : sessions.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
+          No study sessions scheduled yet.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {sessions.map((session) => (
+            <div key={session.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-bold text-slate-900">{session.title}</p>
+                  <p className="mt-1 text-xs font-semibold text-violet-600">
+                    {new Date(session.scheduledFor).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+                    {" · "}{session.durationMinutes} min
+                  </p>
+                  {session.location && <p className="mt-1 text-xs text-slate-500">📍 {session.location}</p>}
+                  {session.description && <p className="mt-2 text-sm text-slate-600">{session.description}</p>}
+                  <p className="mt-2 text-[11px] text-slate-400">
+                    Created by {session.createdByUser?.username} ·{" "}
+                    {session.rsvpCounts.GOING} going · {session.rsvpCounts.MAYBE} maybe
+                  </p>
+                </div>
+                <button onClick={() => cancelSession(session.id)} className="text-xs font-bold text-red-500 hover:text-red-700">
+                  Cancel
+                </button>
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                {Object.keys(RSVP_LABEL).map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => rsvp(session.id, status)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                      session.myRsvpStatus === status ? RSVP_STYLE[status] : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {RSVP_LABEL[status]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NotesTab({ circleId }) {
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [openNoteId, setOpenNoteId] = useState(null);
+  const [draftContent, setDraftContent] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/circles/${circleId}/notes`);
+      setNotes(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to load shared notes.");
+    } finally {
+      setLoading(false);
+    }
+  }, [circleId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const createNote = async () => {
+    if (!newTitle.trim()) return;
+    try {
+      setSaving(true);
+      const response = await api.post(`/circles/${circleId}/notes`, { title: newTitle.trim(), content: "" });
+      setNotes((current) => [response.data, ...current]);
+      setNewTitle("");
+      setCreating(false);
+      setOpenNoteId(response.data.id);
+      setDraftContent("");
+    } catch (err) {
+      window.alert(err.response?.data?.message || "Unable to create this note.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openNote = (note) => {
+    setOpenNoteId(note.id);
+    setDraftContent(note.content || "");
+  };
+
+  const saveNote = async (noteId) => {
+    try {
+      setSaving(true);
+      const response = await api.patch(`/circles/${circleId}/notes/${noteId}`, { content: draftContent });
+      setNotes((current) => current.map((n) => (n.id === noteId ? response.data : n)));
+      setOpenNoteId(null);
+    } catch (err) {
+      window.alert(err.response?.data?.message || "Unable to save this note.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteNote = async (noteId) => {
+    if (!window.confirm("Delete this note?")) return;
+    try {
+      await api.delete(`/circles/${circleId}/notes/${noteId}`);
+      setNotes((current) => current.filter((n) => n.id !== noteId));
+      if (openNoteId === noteId) setOpenNoteId(null);
+    } catch (err) {
+      window.alert(err.response?.data?.message || "Unable to delete this note.");
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-slate-500">
+          A shared wiki for this circle — any member can add or edit a note.
+        </p>
+        {!creating && (
+          <button onClick={() => setCreating(true)} className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-violet-700">
+            + New Note
+          </button>
+        )}
+      </div>
+
+      {creating && (
+        <div className="mb-4 flex gap-2">
+          <input
+            type="text"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            placeholder="Note title (e.g. Exam 2 topics)"
+            className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+          />
+          <button onClick={createNote} disabled={saving} className="rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50">
+            Create
+          </button>
+          <button onClick={() => setCreating(false)} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600">
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="animate-pulse rounded-3xl bg-white p-10 text-center text-sm text-slate-400 shadow-sm">Loading notes...</div>
+      ) : error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>
+      ) : notes.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
+          No shared notes yet.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {notes.map((note) => (
+            <div key={note.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-slate-900">{note.title}</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">
+                    Updated by {note.updatedByUser?.username || note.createdByUser?.username} ·{" "}
+                    {new Date(note.updatedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  {openNoteId !== note.id && (
+                    <button onClick={() => openNote(note)} className="text-xs font-bold text-violet-600 hover:text-violet-800">
+                      Edit
+                    </button>
+                  )}
+                  <button onClick={() => deleteNote(note.id)} className="text-xs font-bold text-red-500 hover:text-red-700">
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              {openNoteId === note.id ? (
+                <div className="mt-3">
+                  <textarea
+                    value={draftContent}
+                    onChange={(e) => setDraftContent(e.target.value)}
+                    rows={6}
+                    className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                  />
+                  <div className="mt-2 flex gap-2">
+                    <button onClick={() => saveNote(note.id)} disabled={saving} className="rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
+                      {saving ? "Saving..." : "Save"}
+                    </button>
+                    <button onClick={() => setOpenNoteId(null)} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                note.content && (
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">{note.content}</p>
+                )
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StudyCircleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -582,7 +964,7 @@ export default function StudyCircleDetail() {
   const [circle, setCircle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const VALID_TABS = ["chat", "materials", "flashcards", "members"];
+  const VALID_TABS = ["chat", "materials", "flashcards", "sessions", "notes", "members"];
   const initialTab = searchParams.get("tab");
   // Deep-linkable: "View in circle" (after generating a Circle flashcard
   // set) and other links can land the user directly on the right tab
@@ -719,6 +1101,8 @@ export default function StudyCircleDetail() {
     { key: "chat", label: "Chat" },
     { key: "materials", label: "Materials" },
     { key: "flashcards", label: "Flashcards" },
+    { key: "sessions", label: "Sessions" },
+    { key: "notes", label: "Notes" },
     { key: "members", label: "Members" },
   ];
 
@@ -814,6 +1198,8 @@ export default function StudyCircleDetail() {
         {tab === "chat" && <ChatTab circleId={circle.id} myRole={circle.role} onAccessRevoked={accessRevoked} />}
         {tab === "materials" && <MaterialsTab circleId={circle.id} />}
         {tab === "flashcards" && <FlashcardsTab circleId={circle.id} />}
+        {tab === "sessions" && <SessionsTab circleId={circle.id} />}
+        {tab === "notes" && <NotesTab circleId={circle.id} />}
         {tab === "members" && (
           <MembersTab
             circleId={circle.id}

@@ -28,16 +28,9 @@ export default function AdminDashboard() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const token = localStorage.getItem("token");
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
-  const authConfig = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }),
-    [token]
-  );
+  const authConfig = useMemo(() => ({ withCredentials: true }), []);
 
   const clearMessages = useCallback(() => {
     setMessage("");
@@ -48,7 +41,7 @@ export default function AdminDashboard() {
     console.error(err);
 
     if (err.response?.status === 401) {
-      localStorage.removeItem("token");
+      localStorage.removeItem("isLoggedIn");
       localStorage.removeItem("role");
       window.location.href = "/login";
       return;
@@ -133,13 +126,13 @@ export default function AdminDashboard() {
   }, [clearMessages, verifyAdmin, loadStats, loadUsers, loadFiles]);
 
   useEffect(() => {
-    if (!token) {
+    if (!isLoggedIn) {
       window.location.href = "/login";
       return;
     }
 
     loadDashboard();
-  }, [token, loadDashboard]);
+  }, [isLoggedIn, loadDashboard]);
 
   const openSection = async (section) => {
     clearMessages();

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import api from "../api/api";
-
 const navItems = [
   { to: "/", label: "Dashboard", icon: "home", end: true },
   { to: "/materials", label: "My Materials", icon: "folder" },
@@ -63,8 +62,13 @@ export default function Sidebar({ open, onClose }) {
   }, []);
 
   const logout = () => {
-    localStorage.clear();
-    navigate("/login");
+    // The auth cookie is httpOnly, so client-side JS can't clear it —
+    // without this call the cookie would keep authenticating requests
+    // even after localStorage.clear().
+    api.post("/auth/logout").finally(() => {
+      localStorage.clear();
+      navigate("/login");
+    });
   };
 
   return (

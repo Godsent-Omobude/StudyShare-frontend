@@ -101,12 +101,22 @@ export default function MyFlashcards() {
             </p>
           </div>
 
-          <Link
-            to="/generate-flashcards"
-            className="rounded-xl bg-violet-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-violet-200 hover:bg-violet-700"
-          >
-            + Generate New Set
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            {sets.length > 0 && (
+              <Link
+                to="/my-flashcards/study-all"
+                className="rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-bold text-violet-700 shadow-sm hover:bg-violet-50"
+              >
+                🔁 Study All (Spaced Repetition)
+              </Link>
+            )}
+            <Link
+              to="/generate-flashcards"
+              className="rounded-xl bg-violet-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-violet-200 hover:bg-violet-700"
+            >
+              + Generate New Set
+            </Link>
+          </div>
         </div>
 
         {error && (

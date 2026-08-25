@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import GenerateFlashcards from "./pages/GenerateFlashcard";
 import MyFlashcards from "./pages/MyFlashcards";
+import StudyAll from "./pages/StudyAll";
 import StudyCircles from "./pages/StudyCircles";
 import StudyCircleDetail from "./pages/StudyCircleDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -131,6 +132,15 @@ export default function App() {
           element={
             <ProtectedLayout>
               <MyFlashcards />
+            </ProtectedLayout>
+          }
+        />
+
+        <Route
+          path="/my-flashcards/study-all"
+          element={
+            <ProtectedLayout>
+              <StudyAll />
             </ProtectedLayout>
           }
         />

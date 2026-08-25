@@ -3,13 +3,13 @@ import { Navigate } from "react-router-dom";
 import api from "../api/api";
 
 export default function AdminRoute({ children }) {
-  const token = localStorage.getItem("token");
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
   const [status, setStatus] = useState("checking");
 
   useEffect(() => {
     let mounted = true;
 
-    if (!token) {
+    if (!isLoggedIn) {
       setStatus("denied");
       return;
     }
@@ -26,9 +26,9 @@ export default function AdminRoute({ children }) {
     return () => {
       mounted = false;
     };
-  }, [token]);
+  }, [isLoggedIn]);
 
-  if (!token || status === "denied") {
+  if (!isLoggedIn || status === "denied") {
     return <Navigate to="/" replace />;
   }
 

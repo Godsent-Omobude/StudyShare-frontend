@@ -26,7 +26,7 @@ export default function Login() {
       setLoading(true);
       const response = await api.post("/auth/login", { username, password });
 
-      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userId", String(response.data.id || ""));
       localStorage.setItem("fullName", response.data.fullName || username);
       localStorage.setItem("username", response.data.username || username);

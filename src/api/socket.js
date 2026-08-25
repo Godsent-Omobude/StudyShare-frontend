@@ -11,7 +11,7 @@ let socketInstance = null;
 export const createStudySocket = () => {
   if (socketInstance) return socketInstance;
   socketInstance = io(normalizeSocketUrl(process.env.REACT_APP_API_URL || "https://studyshare-backend-1-vopy.onrender.com"), {
-    auth: { token: localStorage.getItem("token") || "" },
+    withCredentials: true,
     transports: ["websocket", "polling"],
     reconnection: true,
     reconnectionAttempts: Infinity,

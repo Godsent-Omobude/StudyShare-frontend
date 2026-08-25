@@ -76,7 +76,7 @@ export default function Register() {
         password,
       });
 
-      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userId", String(response.data.id || ""));
       localStorage.setItem("fullName", response.data.fullName || fullName);
       localStorage.setItem("username", response.data.username || username);
