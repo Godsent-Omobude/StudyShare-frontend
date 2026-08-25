@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import api from "../api/api";
+import logo from "../assets/study2gate-logo.png";
 const navItems = [
   { to: "/", label: "Dashboard", icon: "home", end: true },
   { to: "/materials", label: "My Materials", icon: "folder" },
@@ -88,9 +89,11 @@ export default function Sidebar({ open, onClose }) {
         }`}
       >
         <div className="relative flex h-[76px] items-center gap-3 border-b border-slate-100 px-5">
-          <div className="logo-mark flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-violet-400 text-white shadow-lg shadow-violet-200">
-            <span className="text-lg font-black">S</span>
-          </div>
+          <img
+            src={logo}
+            alt="Study2Gate logo"
+            className="h-10 w-10 rounded-xl object-contain shadow-lg shadow-violet-200"
+          />
           <div className="text-[21px] font-black tracking-[-0.04em] text-slate-900">
             Study<span className="logo-mark text-violet-600">2Gate</span>
           </div>
