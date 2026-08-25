@@ -1,10 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import axios from "axios";
-
-const API_URL = (() => {
-  const configured = (process.env.REACT_APP_API_URL || "https://studyshare-backend-o7jr.onrender.com").replace(/\/$/, "");
-  return configured.endsWith("/api") ? configured : `${configured}/api`;
-})();
+import api from "../api/api";
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("overview");
@@ -29,8 +24,6 @@ export default function AdminDashboard() {
   const [error, setError] = useState("");
 
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-
-  const authConfig = useMemo(() => ({ withCredentials: true }), []);
 
   const clearMessages = useCallback(() => {
     setMessage("");
@@ -57,10 +50,7 @@ export default function AdminDashboard() {
 
   const loadStats = useCallback(async () => {
     try {
-      const res = await axios.get(
-        `${API_URL}/admin/stats`,
-        authConfig
-      );
+      const res = await api.get("/admin/stats");
 
       setStats(res.data.stats);
       setRecentUsers(res.data.recentUsers || []);
@@ -68,46 +58,37 @@ export default function AdminDashboard() {
     } catch (err) {
       handleApiError(err, "Unable to load administrator statistics.");
     }
-  }, [authConfig, handleApiError]);
+  }, [handleApiError]);
 
   const verifyAdmin = useCallback(async () => {
     try {
-      const res = await axios.get(
-        `${API_URL}/admin/check`,
-        authConfig
-      );
+      const res = await api.get("/admin/check");
 
       setAdminInfo(res.data.user);
     } catch (err) {
       handleApiError(err, "Unable to verify administrator access.");
     }
-  }, [authConfig, handleApiError]);
+  }, [handleApiError]);
 
   const loadUsers = useCallback(async () => {
     try {
-      const res = await axios.get(
-        `${API_URL}/admin/users`,
-        authConfig
-      );
+      const res = await api.get("/admin/users");
 
       setUsers(res.data.users || []);
     } catch (err) {
       handleApiError(err, "Unable to load users.");
     }
-  }, [authConfig, handleApiError]);
+  }, [handleApiError]);
 
   const loadFiles = useCallback(async () => {
     try {
-      const res = await axios.get(
-        `${API_URL}/admin/files`,
-        authConfig
-      );
+      const res = await api.get("/admin/files");
 
       setFiles(res.data.files || []);
     } catch (err) {
       handleApiError(err, "Unable to load uploaded files.");
     }
-  }, [authConfig, handleApiError]);
+  }, [handleApiError]);
 
   const loadDashboard = useCallback(async () => {
     clearMessages();
@@ -167,10 +148,9 @@ export default function AdminDashboard() {
     setActionLoading(`role-${user.id}`);
 
     try {
-      const res = await axios.patch(
-        `${API_URL}/admin/users/${user.id}/role`,
-        { role: newRole },
-        authConfig
+      const res = await api.patch(
+        `/admin/users/${user.id}/role`,
+        { role: newRole }
       );
 
       setMessage(res.data.message || "User role updated successfully.");
@@ -196,10 +176,7 @@ export default function AdminDashboard() {
     setActionLoading(`delete-user-${user.id}`);
 
     try {
-      const res = await axios.delete(
-        `${API_URL}/admin/users/${user.id}`,
-        authConfig
-      );
+      const res = await api.delete(`/admin/users/${user.id}`);
 
       setMessage(res.data.message || "User deleted successfully.");
 
@@ -224,10 +201,7 @@ export default function AdminDashboard() {
     setActionLoading(`delete-file-${file.id}`);
 
     try {
-      const res = await axios.delete(
-        `${API_URL}/admin/files/${file.id}`,
-        authConfig
-      );
+      const res = await api.delete(`/admin/files/${file.id}`);
 
       setMessage(res.data.message || "File deleted successfully.");
 
@@ -738,7 +712,7 @@ export default function AdminDashboard() {
               </p>
 
               <code className="block bg-slate-900 text-slate-100 rounded-xl p-4 text-sm break-all">
-                {API_URL}/admin
+                {api.defaults.baseURL}/admin
               </code>
 
               <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
