@@ -41,6 +41,14 @@ export default function Login() {
     } catch (err) {
       if (err.response?.status === 429) {
         setError(err.response?.data?.message || "Too many login attempts. Please try again later.");
+      } else if (err.response?.status === 403 && err.response?.data?.verificationRequired) {
+        navigate("/verify-email", {
+          state: {
+            email: err.response.data.email || "",
+            message: err.response.data.message,
+          },
+        });
+        return;
       } else {
         setError(err.response?.data?.message || "Authentication system failure.");
       }

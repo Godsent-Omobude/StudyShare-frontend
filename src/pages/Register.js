@@ -76,15 +76,14 @@ export default function Register() {
         password,
       });
 
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("userId", String(response.data.id || ""));
-      localStorage.setItem("fullName", response.data.fullName || fullName);
-      localStorage.setItem("username", response.data.username || username);
-      localStorage.setItem("email", response.data.email || email);
-      localStorage.setItem("role", response.data.role || "student");
-      localStorage.setItem("matricNumber", response.data.matricNumber || "");
-
-      navigate("/");
+      // Accounts start unverified — no session is created yet. Send the
+      // user on to enter the code we just emailed them.
+      navigate("/verify-email", {
+        state: {
+          email: response.data.email || email,
+          message: response.data.message,
+        },
+      });
     } catch (err) {
       setError(err.response?.data?.message || "Registration failure.");
     } finally {

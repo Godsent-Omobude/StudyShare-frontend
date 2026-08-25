@@ -867,7 +867,7 @@ function NotesTab({ circleId }) {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-slate-500">
-          A shared wiki for this circle — any member can add or edit a note.
+          A shared resoure for this circle. Any member can add or edit a note.
         </p>
         {!creating && (
           <button onClick={() => setCreating(true)} className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-violet-700">
