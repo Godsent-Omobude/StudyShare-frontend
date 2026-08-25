@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import api from "./api/api";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -24,6 +25,51 @@ function ProtectedLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const fullName = localStorage.getItem("fullName") || "Student";
   const username = localStorage.getItem("username") || "";
+  const [profilePictureUrl, setProfilePictureUrl] = useState("");
+
+  useEffect(() => {
+    let objectUrl = "";
+
+    const loadPicture = async () => {
+      try {
+        if (!localStorage.getItem("profilePicture")) {
+          setProfilePictureUrl((old) => {
+            if (old) URL.revokeObjectURL(old);
+            return "";
+          });
+          return;
+        }
+
+        const response = await api.get("/settings/profile-picture", {
+          responseType: "blob",
+        });
+
+        if (!response.data || response.data.size === 0) {
+          setProfilePictureUrl("");
+          return;
+        }
+
+        objectUrl = URL.createObjectURL(response.data);
+        setProfilePictureUrl((old) => {
+          if (old) URL.revokeObjectURL(old);
+          return objectUrl;
+        });
+      } catch {
+        setProfilePictureUrl("");
+      }
+    };
+
+    loadPicture();
+
+    window.addEventListener("study2gate-profile-picture-updated", loadPicture);
+    return () => {
+      window.removeEventListener("study2gate-profile-picture-updated", loadPicture);
+      setProfilePictureUrl((old) => {
+        if (old) URL.revokeObjectURL(old);
+        return "";
+      });
+    };
+  }, []);
 
   return (
     <ProtectedRoute>
@@ -47,9 +93,17 @@ function ProtectedLayout({ children }) {
 
             <div className="ml-auto flex min-w-0 items-center gap-2">
               <NotificationBell />
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-accent text-sm font-bold text-white">
-                {(fullName[0] || "S").toUpperCase()}
-              </div>
+              {profilePictureUrl ? (
+                <img
+                  src={profilePictureUrl}
+                  alt={`${fullName}'s profile`}
+                  className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-blue-50"
+                />
+              ) : (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-accent text-sm font-bold text-white">
+                  {(fullName[0] || "S").toUpperCase()}
+                </div>
+              )}
               <div className="hidden max-w-[150px] sm:block">
                 <p className="truncate text-sm font-bold text-slate-800">
                   {fullName}

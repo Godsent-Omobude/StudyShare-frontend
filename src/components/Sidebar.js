@@ -46,18 +46,29 @@ export default function Sidebar({ open, onClose }) {
     let objectUrl = "";
     const loadPicture = async () => {
       try {
-        if (!localStorage.getItem("profilePicture")) return;
+        if (!localStorage.getItem("profilePicture")) {
+          setProfilePictureUrl((old) => {
+            if (old) URL.revokeObjectURL(old);
+            return "";
+          });
+          return;
+        }
         const response = await api.get("/settings/profile-picture", {
           responseType: "blob",
         });
         objectUrl = URL.createObjectURL(response.data);
-        setProfilePictureUrl(objectUrl);
+        setProfilePictureUrl((old) => {
+          if (old) URL.revokeObjectURL(old);
+          return objectUrl;
+        });
       } catch {
         setProfilePictureUrl("");
       }
     };
     loadPicture();
+    window.addEventListener("study2gate-profile-picture-updated", loadPicture);
     return () => {
+      window.removeEventListener("study2gate-profile-picture-updated", loadPicture);
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, []);
