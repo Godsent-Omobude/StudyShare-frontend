@@ -1,5 +1,48 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Shield,
+  CheckCircle2,
+  AlertTriangle,
+  BarChart3,
+  Users,
+  User,
+  Folder,
+  GraduationCap,
+  Download,
+  Layers,
+  BookOpen,
+  Settings as SettingsIcon,
+  RefreshCw,
+  Lock,
+  Globe,
+  Database,
+} from "lucide-react";
 import api from "../api/api";
+
+const ICONS = {
+  shield: Shield,
+  "check-circle": CheckCircle2,
+  "alert-triangle": AlertTriangle,
+  "bar-chart": BarChart3,
+  users: Users,
+  user: User,
+  folder: Folder,
+  "graduation-cap": GraduationCap,
+  download: Download,
+  layers: Layers,
+  cards: BookOpen,
+  settings: SettingsIcon,
+  refresh: RefreshCw,
+  lock: Lock,
+  globe: Globe,
+  database: Database,
+};
+
+function Icon({ name, className = "h-5 w-5" }) {
+  const Component = ICONS[name];
+  if (!Component) return null;
+  return <Component className={className} aria-hidden="true" />;
+}
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("overview");
@@ -253,7 +296,9 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="text-4xl mb-4">🛡️</div>
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue">
+            <Icon name="shield" className="h-7 w-7" />
+          </div>
           <p className="font-bold text-slate-700">
             Verifying administrator access...
           </p>
@@ -311,14 +356,16 @@ export default function AdminDashboard() {
       <main className="max-w-7xl mx-auto px-5 sm:px-6 py-7">
         {/* Messages */}
         {message && (
-          <div className="mb-5 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">
-            ✅ {message}
+          <div className="mb-5 flex items-center gap-2.5 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">
+            <Icon name="check-circle" className="h-5 w-5 shrink-0" />
+            {message}
           </div>
         )}
 
         {error && (
-          <div className="mb-5 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
-            ⚠️ {error}
+          <div className="mb-5 flex items-center gap-2.5 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
+            <Icon name="alert-triangle" className="h-5 w-5 shrink-0" />
+            {error}
           </div>
         )}
 
@@ -326,28 +373,28 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-7">
           <AdminNavButton
             active={activeSection === "overview"}
-            icon="📊"
+            icon="bar-chart"
             title="Overview"
             onClick={() => openSection("overview")}
           />
 
           <AdminNavButton
             active={activeSection === "users"}
-            icon="👥"
+            icon="users"
             title="User Management"
             onClick={() => openSection("users")}
           />
 
           <AdminNavButton
             active={activeSection === "files"}
-            icon="📁"
+            icon="folder"
             title="File Management"
             onClick={() => openSection("files")}
           />
 
           <AdminNavButton
             active={activeSection === "developer"}
-            icon="⚙️"
+            icon="settings"
             title="Developer Controls"
             onClick={() => openSection("developer")}
           />
@@ -368,51 +415,52 @@ export default function AdminDashboard() {
 
               <button
                 onClick={loadDashboard}
-                className="self-start px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50"
+                className="self-start inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50"
               >
-                ↻ Refresh
+                <Icon name="refresh" className="h-4 w-4" />
+                Refresh
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard
-                icon="👥"
+                icon="users"
                 title="Total Users"
                 value={stats?.users ?? 0}
               />
 
               <StatCard
-                icon="🎓"
+                icon="graduation-cap"
                 title="Students"
                 value={stats?.students ?? 0}
               />
 
               <StatCard
-                icon="🛡️"
+                icon="shield"
                 title="Administrators"
                 value={stats?.admins ?? 0}
               />
 
               <StatCard
-                icon="📁"
+                icon="folder"
                 title="Uploaded Files"
                 value={stats?.files ?? 0}
               />
 
               <StatCard
-                icon="⬇️"
+                icon="download"
                 title="Downloads"
                 value={stats?.downloads ?? 0}
               />
 
               <StatCard
-                icon="🗂️"
+                icon="layers"
                 title="Flashcard Sets"
                 value={stats?.flashcardSets ?? 0}
               />
 
               <StatCard
-                icon="🧠"
+                icon="cards"
                 title="Flashcards"
                 value={stats?.flashcards ?? 0}
               />
@@ -674,28 +722,28 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <SystemCard
-                icon="🔐"
+                icon="lock"
                 title="Administrator Access"
                 value="Verified"
                 healthy
               />
 
               <SystemCard
-                icon="🌐"
+                icon="globe"
                 title="Admin API"
                 value="Connected"
                 healthy
               />
 
               <SystemCard
-                icon="👤"
+                icon="user"
                 title="Current Administrator"
                 value={adminInfo?.username || "Unknown"}
                 healthy
               />
 
               <SystemCard
-                icon="📊"
+                icon="database"
                 title="Database Records"
                 value={`${stats?.users ?? 0} users • ${stats?.files ?? 0} files`}
                 healthy
@@ -742,7 +790,13 @@ function AdminNavButton({ active, icon, title, onClick }) {
           : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
       }`}
     >
-      <div className="text-xl mb-2">{icon}</div>
+      <div
+        className={`mb-2 flex h-9 w-9 items-center justify-center rounded-xl ${
+          active ? "bg-white/15 text-white" : "bg-slate-100 text-slate-500"
+        }`}
+      >
+        <Icon name={icon} className="h-5 w-5" />
+      </div>
       <div className="font-black text-sm">{title}</div>
     </button>
   );
@@ -751,7 +805,9 @@ function AdminNavButton({ active, icon, title, onClick }) {
 function StatCard({ icon, title, value }) {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5">
-      <div className="text-2xl mb-3">{icon}</div>
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
+        <Icon name={icon} className="h-5 w-5" />
+      </div>
       <p className="text-sm font-semibold text-slate-500">{title}</p>
       <p className="text-3xl font-black text-slate-800 mt-1">{value}</p>
     </div>
@@ -785,9 +841,13 @@ function SectionHeader({ title, description, onRefresh, loading }) {
       <button
         onClick={onRefresh}
         disabled={loading}
-        className="self-start px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        className="self-start inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
       >
-        {loading ? "Refreshing..." : "↻ Refresh"}
+        <Icon
+          name="refresh"
+          className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+        />
+        {loading ? "Refreshing..." : "Refresh"}
       </button>
     </div>
   );
@@ -868,7 +928,9 @@ function RecentFiles({ files, onOpenFiles }) {
 function SystemCard({ icon, title, value, healthy }) {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-6">
-      <div className="text-2xl mb-3">{icon}</div>
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
+        <Icon name={icon} className="h-5 w-5" />
+      </div>
 
       <p className="text-sm font-semibold text-slate-500">{title}</p>
 

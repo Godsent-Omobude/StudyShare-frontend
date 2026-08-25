@@ -6,6 +6,7 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import Materials from "./pages/Materials";
 import GenerateFlashcards from "./pages/GenerateFlashcard";
 import MyFlashcards from "./pages/MyFlashcards";
 import StudyAll from "./pages/StudyAll";
@@ -64,17 +65,6 @@ function ProtectedLayout({ children }) {
         </div>
       </div>
     </ProtectedRoute>
-  );
-}
-
-function PlaceholderPage({ title, description }) {
-  return (
-    <main className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-        <h1 className="text-3xl font-black text-slate-900">{title}</h1>
-        <p className="mt-2 text-sm text-slate-500">{description}</p>
-      </div>
-    </main>
   );
 }
 
@@ -178,10 +168,7 @@ export default function App() {
           path="/materials"
           element={
             <ProtectedLayout>
-              <PlaceholderPage
-                title="My Materials"
-                description="Your existing materials workspace can be connected here."
-              />
+              <Materials />
             </ProtectedLayout>
           }
         />
