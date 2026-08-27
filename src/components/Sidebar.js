@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import api from "../api/api";
-import logo from "../assets/study2gate-logo.png";
+import usePushMessaging from "../hooks/usePushMessaging";
+import { unregisterPushDevice } from "../api/pushNotifications";
+import { revokeLocalToken } from "../firebase/messaging";
 const navItems = [
   { to: "/", label: "Dashboard", icon: "home", end: true },
   { to: "/materials", label: "My Materials", icon: "folder" },
@@ -42,42 +44,44 @@ export default function Sidebar({ open, onClose }) {
   const isAdmin = role === "admin";
   const [profilePictureUrl, setProfilePictureUrl] = useState("");
 
+  // Keeps this device's FCM registration current for the lifetime of the
+  // session. Present here (rather than in App.js) because Sidebar is
+  // mounted on every authenticated page via ProtectedLayout.
+  usePushMessaging();
+
   useEffect(() => {
     let objectUrl = "";
     const loadPicture = async () => {
       try {
-        if (!localStorage.getItem("profilePicture")) {
-          setProfilePictureUrl((old) => {
-            if (old) URL.revokeObjectURL(old);
-            return "";
-          });
-          return;
-        }
+        if (!localStorage.getItem("profilePicture")) return;
         const response = await api.get("/settings/profile-picture", {
           responseType: "blob",
         });
         objectUrl = URL.createObjectURL(response.data);
-        setProfilePictureUrl((old) => {
-          if (old) URL.revokeObjectURL(old);
-          return objectUrl;
-        });
+        setProfilePictureUrl(objectUrl);
       } catch {
         setProfilePictureUrl("");
       }
     };
     loadPicture();
-    window.addEventListener("study2gate-profile-picture-updated", loadPicture);
     return () => {
-      window.removeEventListener("study2gate-profile-picture-updated", loadPicture);
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, []);
 
   const logout = () => {
+    // Only this device's push registration is removed — other
+    // devices/browsers signed into the same account keep receiving
+    // pushes, since logging out here says nothing about those sessions.
+    const fcmToken = localStorage.getItem("fcmToken");
+    const cleanupPush = fcmToken
+      ? unregisterPushDevice(fcmToken).catch(() => {}).then(() => revokeLocalToken())
+      : Promise.resolve();
+
     // The auth cookie is httpOnly, so client-side JS can't clear it —
     // without this call the cookie would keep authenticating requests
     // even after localStorage.clear().
-    api.post("/auth/logout").finally(() => {
+    Promise.allSettled([api.post("/auth/logout"), cleanupPush]).finally(() => {
       localStorage.clear();
       navigate("/login");
     });
@@ -100,11 +104,9 @@ export default function Sidebar({ open, onClose }) {
         }`}
       >
         <div className="relative flex h-[76px] items-center gap-3 border-b border-slate-100 px-5">
-          <img
-            src={logo}
-            alt="Study2Gate logo"
-            className="h-10 w-10 rounded-xl object-contain shadow-lg shadow-violet-200"
-          />
+          <div className="logo-mark flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-violet-400 text-white shadow-lg shadow-violet-200">
+            <span className="text-lg font-black">S</span>
+          </div>
           <div className="text-[21px] font-black tracking-[-0.04em] text-slate-900">
             Study<span className="logo-mark text-violet-600">2Gate</span>
           </div>

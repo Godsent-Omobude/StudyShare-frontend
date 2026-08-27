@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import api from "../api/api";
 import { Eye, EyeOff } from "lucide-react";
 import PasswordRequirementsChecklist from "../components/PasswordRequirementsChecklist";
+import PushNotificationSettings from "../components/PushNotificationSettings";
 import { isPasswordValid } from "../utils/passwordRequirements";
 
 const themes = ["light", "dark", "system"];
@@ -364,6 +365,8 @@ export default function Settings() {
             />
           </label>
         </section>
+
+        <PushNotificationSettings />
 
         <section className="mb-5 rounded-3xl bg-white p-6 shadow-sm">
           <h2 className="text-xl font-black text-slate-900">Appearance</h2>
