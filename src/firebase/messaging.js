@@ -23,7 +23,7 @@ const registerServiceWorker = async () => {
   // service-worker registration, which this project doesn't use) so we
   // control exactly which file handles push, and so this call can be
   // awaited before requesting a token.
-  return navigator.serviceWorker.register(SERVICE_WORKER_URL);
+  return navigator.serviceWorker.register(SERVICE_WORKER_URL, { updateViaCache: "none" });
 };
 
 const describeDevice = () => {

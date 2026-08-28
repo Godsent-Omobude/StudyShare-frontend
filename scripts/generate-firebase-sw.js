@@ -50,12 +50,13 @@ const requiredVars = [
 const missing = requiredVars.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
-  console.warn(
-    `[generate-firebase-sw] Skipping: missing ${missing.join(", ")}. ` +
-    "Push notifications will be unavailable until these are set in frontend/.env " +
-    "(see .env.example). The app itself will still run normally."
+  console.error(
+    `[generate-firebase-sw] ERROR: missing ${missing.join(", ")}. ` +
+    "The production build cannot continue because Firebase Messaging requires " +
+    "a real service worker configuration. Add these REACT_APP_FIREBASE_* variables " +
+    "to the frontend deployment environment and rebuild."
   );
-  process.exit(0);
+  process.exit(1);
 }
 
 const config = {
@@ -91,8 +92,8 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(title, {
     body,
-    icon: "/favicon.ico",
-    badge: "/favicon.ico",
+    icon: "/study2gate-logo.png",
+    badge: "/study2gate-logo.png",
     data: { url },
     tag: payload.data?.notificationId || undefined,
   });

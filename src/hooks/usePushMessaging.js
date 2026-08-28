@@ -44,12 +44,10 @@ export default function usePushMessaging() {
 
     const syncToken = async () => {
       const previousToken = localStorage.getItem("fcmToken");
-      if (!previousToken) return; // User never opted in on this device.
-
       const refreshed = await refreshTokenIfPermitted();
       if (cancelled || !refreshed) return;
 
-      if (refreshed.token !== previousToken) {
+      if (!previousToken || refreshed.token !== previousToken) {
         try {
           await registerPushDevice(refreshed.token, refreshed.deviceInfo);
           localStorage.setItem("fcmToken", refreshed.token);
