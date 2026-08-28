@@ -262,3 +262,51 @@ html[data-theme="dark"] select {
     animation: none !important;
   }
 }
+
+/* Equalizer bars loading indicator (EqualizerLoader component). Bars use
+   currentColor so they inherit whichever theme text/accent color the
+   surrounding element resolves to (e.g. white text on an accent-colored
+   button, or --text-main in a plain page context) — no hardcoded colors,
+   and it adapts automatically to light/dark mode and accent choice. */
+@keyframes equalizerBounce {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+.equalizer-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.equalizer-loader__bars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 18px;
+}
+
+.equalizer-loader--sm .equalizer-loader__bars { height: 14px; }
+.equalizer-loader--lg .equalizer-loader__bars { height: 24px; }
+
+.equalizer-loader__bar {
+  width: 4px;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: currentColor;
+  transform-origin: center;
+  animation: equalizerBounce 1s ease-in-out infinite;
+}
+
+.equalizer-loader__label {
+  font: inherit;
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .equalizer-loader__bar {
+    animation: none;
+    transform: scaleY(0.7);
+  }
+}

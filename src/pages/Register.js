@@ -4,6 +4,7 @@ import api from "../api/api";
 import study2gateLogo from "../assets/study2gate-logo.png";
 import { Eye, EyeOff } from "lucide-react";
 import PasswordRequirementsChecklist from "../components/PasswordRequirementsChecklist";
+import EqualizerLoader from "../components/EqualizerLoader";
 import { isPasswordValid } from "../utils/passwordRequirements";
 
 export default function Register() {
@@ -255,9 +256,9 @@ export default function Register() {
                   usernameStatus === "checking" ||
                   !isPasswordValid(password)
                 }
-                className="w-full rounded-xl bg-[#635bff] py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-[#5148e8] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full items-center justify-center rounded-xl bg-[#635bff] py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-[#5148e8] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Creating..." : "Create Account"}
+                {loading ? <EqualizerLoader label="Creating account…" /> : "Create Account"}
               </button>
             </form>
 

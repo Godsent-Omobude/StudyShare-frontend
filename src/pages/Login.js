@@ -4,6 +4,7 @@ import api from "../api/api";
 import logo from "../assets/study2gate-logo.png";
 import { Eye, EyeOff } from "lucide-react";
 import { safeInternalPath } from "../utils/safeRedirect";
+import EqualizerLoader from "../components/EqualizerLoader";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -158,9 +159,9 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-xl bg-blue-600 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:opacity-60"
+                  className="flex w-full items-center justify-center rounded-xl bg-blue-600 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:opacity-60"
                 >
-                  {loading ? "Signing in..." : "Sign In"}
+                  {loading ? <EqualizerLoader label="Signing in…" /> : "Sign In"}
                 </button>
               </form>
 
