@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -15,14 +15,13 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 import Sidebar from "./components/Sidebar";
+import Navbar from "./components/Navbar";
 import Settings from "./pages/Settings";
 import NotificationBell from "./components/NotificationBell";
 import JoinCircleInvitation from "./pages/JoinCircleInvitation";
 
 function ProtectedLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const fullName = localStorage.getItem("fullName") || "Student";
-  const username = localStorage.getItem("username") || "";
 
   return (
     <ProtectedRoute>
@@ -33,38 +32,46 @@ function ProtectedLayout({ children }) {
         />
 
         <div className="min-w-0 flex-1">
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur sm:px-6 lg:h-[72px] lg:px-8">
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Open navigation menu"
-              aria-expanded={sidebarOpen}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 lg:hidden"
-            >
-              ☰
-            </button>
-
-            <div className="ml-auto flex min-w-0 items-center gap-2">
-              <NotificationBell />
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-accent text-sm font-bold text-white">
-                {(fullName[0] || "S").toUpperCase()}
-              </div>
-              <div className="hidden max-w-[150px] sm:block">
-                <p className="truncate text-sm font-bold text-slate-800">
-                  {fullName}
-                </p>
-                <p className="truncate text-xs text-slate-500">
-                  {username || "Student"}
-                </p>
-              </div>
-            </div>
-          </header>
+          <Navbar onMenuOpen={() => setSidebarOpen(true)}>
+            <NotificationBell />
+          </Navbar>
 
           {children}
         </div>
       </div>
     </ProtectedRoute>
   );
+}
+
+// Pages that must always render with the blue brand colour, no matter what
+// accent colour the signed-in user has picked in Settings. A signed-out
+// visitor (or someone who just logged out) should never land on a red/green/etc.
+// login or registration screen just because the account they used last time
+// had a custom accent saved.
+const ALWAYS_BLUE_ROUTES = ["/login", "/register"];
+
+function AppearanceManager() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const apply = () => {
+      const theme = localStorage.getItem("theme") || "system";
+      const savedAccent = localStorage.getItem("accentColor") || "blue";
+      const accent = ALWAYS_BLUE_ROUTES.includes(location.pathname)
+        ? "blue"
+        : savedAccent;
+
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.dataset.accent = accent;
+    };
+
+    apply();
+    window.addEventListener("study2gate-appearance-change", apply);
+    return () =>
+      window.removeEventListener("study2gate-appearance-change", apply);
+  }, [location.pathname]);
+
+  return null;
 }
 
 function PlaceholderPage({ title, description }) {
@@ -79,22 +86,9 @@ function PlaceholderPage({ title, description }) {
 }
 
 export default function App() {
-  useEffect(() => {
-    const apply = () => {
-      const theme = localStorage.getItem("theme") || "system";
-      const accent = localStorage.getItem("accentColor") || "blue";
-      document.documentElement.dataset.theme = theme;
-      document.documentElement.dataset.accent = accent;
-    };
-
-    apply();
-    window.addEventListener("study2gate-appearance-change", apply);
-    return () =>
-      window.removeEventListener("study2gate-appearance-change", apply);
-  }, []);
-
   return (
     <BrowserRouter>
+      <AppearanceManager />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

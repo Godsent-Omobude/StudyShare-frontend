@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
 
-export default function Navbar({ onMenuOpen }) {
+export default function Navbar({ onMenuOpen, children }) {
   const userName = localStorage.getItem("fullName") || "Student";
   const profileInitial = (userName.trim()[0] || "S").toUpperCase();
   const [profilePictureUrl, setProfilePictureUrl] = useState("");
@@ -76,23 +76,27 @@ export default function Navbar({ onMenuOpen }) {
           </div>
         </div>
 
-        {profilePictureUrl ? (
-          <img
-            src={profilePictureUrl}
-            alt={`${userName}'s profile`}
-            title={userName}
-            aria-label={`Logged in as ${userName}`}
-            className="h-11 w-11 shrink-0 rounded-full object-cover shadow-md shadow-blue-100 ring-4 ring-blue-50"
-          />
-        ) : (
-          <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-accent text-base font-black text-white shadow-md shadow-blue-100 ring-4 ring-blue-50"
-            title={userName}
-            aria-label={`Logged in as ${userName}`}
-          >
-            {profileInitial}
-          </div>
-        )}
+        <div className="flex shrink-0 items-center gap-3">
+          {children}
+
+          {profilePictureUrl ? (
+            <img
+              src={profilePictureUrl}
+              alt={`${userName}'s profile`}
+              title={userName}
+              aria-label={`Logged in as ${userName}`}
+              className="h-11 w-11 shrink-0 rounded-full object-cover shadow-md shadow-blue-100 ring-4 ring-blue-50"
+            />
+          ) : (
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-accent text-base font-black text-white shadow-md shadow-blue-100 ring-4 ring-blue-50"
+              title={userName}
+              aria-label={`Logged in as ${userName}`}
+            >
+              {profileInitial}
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );
