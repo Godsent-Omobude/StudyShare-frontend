@@ -73,9 +73,9 @@ export default function PushNotificationSettings() {
       await registerPushDevice(result.token, result.deviceInfo);
       localStorage.setItem("fcmToken", result.token);
       await refreshStatus();
-      setNotice("Push notifications enabled on this device.");
+      setNotice("Notifications enabled on this device.");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Unable to enable push notifications.");
+      setError(err.response?.data?.message || err.message || "Unable to enable notifications.");
     } finally {
       setBusy(false);
     }
@@ -93,9 +93,9 @@ export default function PushNotificationSettings() {
       await revokeLocalToken();
       localStorage.removeItem("fcmToken");
       await refreshStatus();
-      setNotice("Push notifications turned off on this device.");
+      setNotice("Notifications turned off on this device.");
     } catch (err) {
-      setError(err.response?.data?.message || "Unable to disable push notifications.");
+      setError(err.response?.data?.message || "Unable to disable notifications.");
     } finally {
       setBusy(false);
     }
@@ -131,7 +131,7 @@ export default function PushNotificationSettings() {
       <div className="mt-5 rounded-2xl bg-slate-50 p-4">
         {permission === "unsupported" && (
           <p className="text-sm text-slate-500">
-            Push notifications aren't supported in this browser. Try a recent version of Chrome, Firefox, or Edge.
+            Notifications aren't supported in this browser. Try a recent version of Chrome, Firefox, or Edge.
           </p>
         )}
 
@@ -145,7 +145,7 @@ export default function PushNotificationSettings() {
         {(permission === "not-requested" || permission === "granted") && (
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="font-bold text-slate-800">Browser push notifications</p>
+              <p className="font-bold text-slate-800">Browser notifications</p>
               <p className="mt-1 text-xs text-slate-500">
                 Get notified on this device even when Study2Gate isn't open in your browser.
               </p>

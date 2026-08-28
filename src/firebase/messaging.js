@@ -51,12 +51,12 @@ const describeDevice = () => {
 // responsible for sending the returned token to POST /notifications/register.
 export const requestPermissionAndRegister = async () => {
   if (!isFirebaseConfigured()) {
-    throw new Error("Push notifications are not configured for this deployment.");
+    throw new Error("Notifications are not configured for this deployment.");
   }
 
   const messaging = await getMessagingIfSupported();
   if (!messaging) {
-    throw new Error("Push notifications aren't supported in this browser.");
+    throw new Error("Notifications aren't supported in this browser.");
   }
 
   const permission = await Notification.requestPermission();
