@@ -92,8 +92,8 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(title, {
     body,
-    icon: "/study2gate-logo.png",
-    badge: "/study2gate-logo.png",
+    icon: "/study2gate-notification-icon.png",
+    badge: "/study2gate-notification-icon.png",
     data: { url },
     tag: payload.data?.notificationId || undefined,
   });
