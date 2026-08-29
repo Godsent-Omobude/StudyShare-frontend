@@ -17,6 +17,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState("");
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -63,6 +64,11 @@ export default function Register() {
 
     if (usernameStatus === "checking") {
       setError("Please wait while we check your username.");
+      return;
+    }
+
+    if (!agreedToPrivacy) {
+      setError("You must agree to the Privacy Policy to create an account.");
       return;
     }
 
@@ -248,13 +254,30 @@ export default function Register() {
                 </div>
               </div>
 
+              <label className="flex items-start gap-3 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  required
+                  checked={agreedToPrivacy}
+                  onChange={(e) => setAgreedToPrivacy(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[#635bff] focus:ring-[#635bff]"
+                />
+                <span>
+                  I agree to the{" "}
+                  <Link to="/privacy" target="_blank" className="font-bold text-[#635bff] hover:underline">
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+
               <button
                 type="submit"
                 disabled={
                   loading ||
                   usernameStatus === "taken" ||
                   usernameStatus === "checking" ||
-                  !isPasswordValid(password)
+                  !isPasswordValid(password) ||
+                  !agreedToPrivacy
                 }
                 className="flex w-full items-center justify-center rounded-xl bg-[#635bff] py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-[#5148e8] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -267,14 +290,6 @@ export default function Register() {
               <Link to="/login" className="font-bold text-[#635bff] hover:underline">
                 Log in
               </Link>
-            </p>
-
-            <p className="mt-3 text-center text-xs text-slate-400">
-              By creating an account you agree to our{" "}
-              <Link to="/privacy" className="hover:underline">
-                Privacy Policy
-              </Link>
-              .
             </p>
 
             <div className="mt-7 border-t border-slate-100 pt-5 text-center">
