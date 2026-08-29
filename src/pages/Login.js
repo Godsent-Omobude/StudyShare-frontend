@@ -171,6 +171,12 @@ export default function Login() {
                   Create an account
                 </Link>
               </p>
+
+              <p className="mt-3 text-center text-xs text-slate-400">
+                <Link to="/privacy" className="hover:underline">
+                  Privacy Policy
+                </Link>
+              </p>
             </div>
           </div>
         </div>

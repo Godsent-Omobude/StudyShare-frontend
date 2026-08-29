@@ -269,6 +269,14 @@ export default function Register() {
               </Link>
             </p>
 
+            <p className="mt-3 text-center text-xs text-slate-400">
+              By creating an account you agree to our{" "}
+              <Link to="/privacy" className="hover:underline">
+                Privacy Policy
+              </Link>
+              .
+            </p>
+
             <div className="mt-7 border-t border-slate-100 pt-5 text-center">
               <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#635bff]">
                 A STUDENT PLATFORM BY GODSENT OMOBUDE
