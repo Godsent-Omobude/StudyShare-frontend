@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/api";
+import DisputeModal from "../components/DisputeModal";
+
+const COPYRIGHT_LABELS = {
+  PENDING: { label: "Screening in progress", tone: "bg-slate-100 text-slate-600" },
+  REVIEW_REQUIRED: { label: "Under copyright review", tone: "bg-amber-100 text-amber-700" },
+  RESTRICTED: { label: "Access restricted", tone: "bg-orange-100 text-orange-700" },
+  REMOVED: { label: "Removed", tone: "bg-red-100 text-red-700" },
+  REJECTED: { label: "Rejected", tone: "bg-slate-200 text-slate-600" },
+};
 
 export default function Materials() {
   const [files, setFiles] = useState([]);
@@ -9,6 +18,7 @@ export default function Materials() {
   const [filterType, setFilterType] = useState("All");
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadedId, setDownloadedId] = useState(null);
+  const [disputeFile, setDisputeFile] = useState(null);
 
   const userId = Number(localStorage.getItem("userId"));
 
@@ -192,6 +202,35 @@ export default function Materials() {
                       {file.description || "No description provided."}
                     </p>
 
+                    {file.copyrightStatus && file.copyrightStatus !== "CLEARED" && (
+                      <div className="mt-3 rounded-xl bg-slate-50 p-3">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${
+                            COPYRIGHT_LABELS[file.copyrightStatus]?.tone || "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {COPYRIGHT_LABELS[file.copyrightStatus]?.label || file.copyrightStatus}
+                        </span>
+                        <p className="mt-2 text-xs text-slate-500">
+                          {file.copyrightStatus === "REVIEW_REQUIRED" &&
+                            "This upload is undergoing copyright review and isn't publicly visible yet. Similarity alone doesn't mean infringement — an administrator will make the final call."}
+                          {file.copyrightStatus === "RESTRICTED" &&
+                            (file.restrictionReason || "Access is temporarily restricted while a copyright concern is reviewed.")}
+                          {file.copyrightStatus === "REMOVED" &&
+                            (file.removalReason || "This material was removed following a copyright review. This is not necessarily a legal finding of infringement.")}
+                        </p>
+                        {["RESTRICTED", "REMOVED"].includes(file.copyrightStatus) && (
+                          <button
+                            type="button"
+                            onClick={() => setDisputeFile(file)}
+                            className="mt-2 text-xs font-bold text-violet-700 hover:underline"
+                          >
+                            Dispute this decision
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
                       <span className="text-xs text-slate-400">
                         Downloads: {file.downloads ?? 0}
@@ -240,6 +279,17 @@ export default function Materials() {
           </div>
         </section>
       </div>
+
+      {disputeFile && (
+        <DisputeModal
+          file={disputeFile}
+          onClose={() => setDisputeFile(null)}
+          onSubmitted={() => {
+            setDisputeFile(null);
+            fetchFiles();
+          }}
+        />
+      )}
     </main>
   );
 }

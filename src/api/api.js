@@ -34,6 +34,20 @@ api.interceptors.response.use(
       }
     }
 
+    // The session cookie is still valid, but the account hasn't accepted
+    // the (possibly newly introduced/updated) Copyright Policy yet. Send
+    // the user to the acceptance gate instead of leaving whatever page
+    // they were on stuck on a failed request.
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.code === "COPYRIGHT_POLICY_ACCEPTANCE_REQUIRED" &&
+      window.location.pathname !== "/accept-policy"
+    ) {
+      const returnTo = `${window.location.pathname}${window.location.search}`;
+      const redirectParam = returnTo && returnTo !== "/" ? `?redirect=${encodeURIComponent(returnTo)}` : "";
+      window.location.href = `/accept-policy${redirectParam}`;
+    }
+
     return Promise.reject(error);
   }
 );

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/api";
 import FlashcardSetCard from "../components/FlashcardSetCard";
+import ReportModal from "../components/ReportModal";
 
 export default function Dashboard() {
   const [files, setFiles] = useState([]);
@@ -13,6 +14,7 @@ export default function Dashboard() {
     longestStreak: 0,
     lastStudyDate: null,
     totalStudyDays: 0,
+    status: "none",
   });
 
   const [title, setTitle] = useState("");
@@ -20,9 +22,11 @@ export default function Dashboard() {
   const [courseCode, setCourseCode] = useState("");
   const [type, setType] = useState("Material");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [copyrightConfirmed, setCopyrightConfirmed] = useState(false);
   const [uploadMsg, setUploadMsg] = useState({ text: "", isError: false });
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadedId, setDownloadedId] = useState(null);
+  const [reportFile, setReportFile] = useState(null);
 
   const userName = localStorage.getItem("fullName") || "Student";
 
@@ -73,22 +77,31 @@ export default function Dashboard() {
       return;
     }
 
+    if (!copyrightConfirmed) {
+      setUploadMsg({
+        text: "Please confirm that you have the right or permission to upload this material.",
+        isError: true,
+      });
+      return;
+    }
+
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
     formData.append("courseCode", courseCode);
     formData.append("type", type);
+    formData.append("copyrightConfirmation", "true");
     formData.append("file", selectedFile);
 
     try {
-      await api.post("/files/upload", formData, {
+      const response = await api.post("/files/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
       setUploadMsg({
-        text: "Resource uploaded successfully.",
+        text: response.data?.message || "Resource uploaded successfully.",
         isError: false,
       });
 
@@ -96,6 +109,7 @@ export default function Dashboard() {
       setDescription("");
       setCourseCode("");
       setSelectedFile(null);
+      setCopyrightConfirmed(false);
 
       const input = document.getElementById("material-file");
       if (input) input.value = "";
@@ -282,8 +296,14 @@ export default function Dashboard() {
                   🔥
                 </div>
                 {streak.currentStreak > 0 && (
-                  <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-700">
-                    Active
+                  <span
+                    className={`rounded-full px-2 py-1 text-[10px] font-black ${
+                      streak.status === "at_risk"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {streak.status === "at_risk" ? "At risk" : "Active"}
                   </span>
                 )}
               </div>
@@ -361,8 +381,26 @@ export default function Dashboard() {
                 className="block w-full text-xs text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:font-bold file:text-violet-700"
               />
 
+              <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <input
+                  type="checkbox"
+                  checked={copyrightConfirmed}
+                  onChange={(e) => setCopyrightConfirmed(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                />
+                <span className="text-xs leading-5 text-slate-600">
+                  I confirm that I created this material or have the right,
+                  permission, or other lawful basis to upload and share it on
+                  Study2Gate. I understand that Study2Gate screens uploads for
+                  potential copyright issues, and that material flagged by
+                  this screen is held for administrator review rather than
+                  published immediately, and may be restricted or removed.
+                </span>
+              </label>
+
               <button
                 type="submit"
+                disabled={!copyrightConfirmed}
                 className="w-full rounded-xl bg-violet-600 py-3 text-sm font-black text-white shadow-lg shadow-violet-100 hover:bg-violet-700"
               >
                 Publish Document
@@ -386,7 +424,9 @@ export default function Dashboard() {
                 </span>
               </div>
               <p className="mt-2 text-sm text-slate-500">
-                {streak.currentStreak > 0
+                {streak.currentStreak > 0 && streak.status === "at_risk"
+                  ? "Study now to keep your streak! 🔥"
+                  : streak.currentStreak > 0
                   ? `You're on a roll. Keep studying today to reach ${
                       streak.currentStreak + 1
                     }!`
@@ -550,27 +590,38 @@ export default function Dashboard() {
                         Downloads: {file.downloads ?? 0}
                       </span>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDownload(fileId, filename)}
-                        disabled={downloadingId === fileId}
-                        className={`inline-flex min-w-[108px] items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition ${
-                          downloadedId === fileId
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-violet-50 text-violet-700 hover:bg-violet-100"
-                        } disabled:cursor-not-allowed disabled:opacity-70`}
-                      >
-                        {downloadingId === fileId ? (
-                          <>
-                            <span className="h-3 w-3 animate-spin rounded-full border-2 border-violet-200 border-t-violet-700" />
-                            Downloading...
-                          </>
-                        ) : downloadedId === fileId ? (
-                          "✓ Downloaded"
-                        ) : (
-                          "↓ Download"
-                        )}
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setReportFile(file)}
+                          className="text-[11px] font-bold text-slate-400 hover:text-red-600"
+                          title="Report copyright infringement"
+                        >
+                          Report
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(fileId, filename)}
+                          disabled={downloadingId === fileId}
+                          className={`inline-flex min-w-[108px] items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition ${
+                            downloadedId === fileId
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-violet-50 text-violet-700 hover:bg-violet-100"
+                          } disabled:cursor-not-allowed disabled:opacity-70`}
+                        >
+                          {downloadingId === fileId ? (
+                            <>
+                              <span className="h-3 w-3 animate-spin rounded-full border-2 border-violet-200 border-t-violet-700" />
+                              Downloading...
+                            </>
+                          ) : downloadedId === fileId ? (
+                            "✓ Downloaded"
+                          ) : (
+                            "↓ Download"
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </article>
                 );
@@ -583,6 +634,14 @@ export default function Dashboard() {
           </div>
         </section>
       </div>
+
+      {reportFile && (
+        <ReportModal
+          file={reportFile}
+          onClose={() => setReportFile(null)}
+          onSubmitted={() => setReportFile(null)}
+        />
+      )}
     </main>
   );
 }

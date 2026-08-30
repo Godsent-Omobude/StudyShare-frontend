@@ -54,7 +54,7 @@ const SECTIONS = [
   {
     title: "Contact",
     body: [
-      "Questions about this policy or your data can be directed to the Study2Gate team through the app's email(study2gate@gmail.com).",
+      "Questions about this policy or your data can be directed to the Study2Gate team through the app's support channel.",
     ],
   },
 ];
@@ -85,6 +85,17 @@ export default function PrivacyPolicy() {
                 </ul>
               </section>
             ))}
+          </div>
+          <div className="mt-10 border-t border-slate-100 pt-6 text-sm text-slate-500">
+            Also see our{" "}
+            <Link to="/terms" className="font-bold text-blue-600 hover:underline">
+              Terms &amp; Conditions
+            </Link>{" "}
+            and{" "}
+            <Link to="/copyright" className="font-bold text-blue-600 hover:underline">
+              Copyright Policy
+            </Link>
+            .
           </div>
         </div>
       </div>

@@ -68,7 +68,7 @@ export default function Register() {
     }
 
     if (!agreedToPrivacy) {
-      setError("You must agree to the Privacy Policy to create an account.");
+      setError("You must agree to the Copyright Policy to create an account.");
       return;
     }
 
@@ -81,6 +81,7 @@ export default function Register() {
         username,
         matricNumber,
         password,
+        copyrightPolicyAccepted: agreedToPrivacy,
       });
 
       // Accounts start unverified — no session is created yet. Send the
@@ -264,8 +265,16 @@ export default function Register() {
                 />
                 <span>
                   I agree to the{" "}
+                  <Link to="/terms" target="_blank" className="font-bold text-[#635bff] hover:underline">
+                    Terms &amp; Conditions
+                  </Link>
+                  ,{" "}
                   <Link to="/privacy" target="_blank" className="font-bold text-[#635bff] hover:underline">
                     Privacy Policy
+                  </Link>{" "}
+                  and{" "}
+                  <Link to="/copyright" target="_blank" className="font-bold text-[#635bff] hover:underline">
+                    Copyright Policy
                   </Link>
                 </span>
               </label>

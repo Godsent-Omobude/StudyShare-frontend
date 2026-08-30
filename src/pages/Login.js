@@ -50,6 +50,17 @@ export default function Login() {
           },
         });
         return;
+      } else if (
+        err.response?.status === 403 &&
+        err.response?.data?.copyrightPolicyAcceptanceRequired
+      ) {
+        navigate("/accept-policy", {
+          state: {
+            pendingToken: err.response.data.pendingToken,
+            redirectTo,
+          },
+        });
+        return;
       } else {
         setError(err.response?.data?.message || "Authentication system failure.");
       }
@@ -173,8 +184,16 @@ export default function Login() {
               </p>
 
               <p className="mt-3 text-center text-xs text-slate-400">
+                <Link to="/terms" className="hover:underline">
+                  Terms &amp; Conditions
+                </Link>
+                {" · "}
                 <Link to="/privacy" className="hover:underline">
                   Privacy Policy
+                </Link>
+                {" · "}
+                <Link to="/copyright" className="hover:underline">
+                  Copyright Policy
                 </Link>
               </p>
             </div>

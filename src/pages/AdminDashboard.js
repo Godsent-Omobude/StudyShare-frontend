@@ -18,6 +18,8 @@ import {
   Database,
 } from "lucide-react";
 import api from "../api/api";
+import CopyrightReviewPanel from "../components/CopyrightReviewPanel";
+import UserCopyrightDrawer from "../components/UserCopyrightDrawer";
 
 const ICONS = {
   shield: Shield,
@@ -65,6 +67,9 @@ export default function AdminDashboard() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  // Which user's Copyright Standing drawer is open (User Management tab).
+  const [copyrightUserId, setCopyrightUserId] = useState(null);
 
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
@@ -232,11 +237,16 @@ export default function AdminDashboard() {
   };
 
   const deleteFile = async (file) => {
-    if (
-      !window.confirm(
-        `Delete "${file.title || file.filename}"? This action cannot be undone.`
-      )
-    ) {
+    const hasCopyrightHistory = file.copyrightStatus && file.copyrightStatus !== "CLEARED";
+
+    const confirmMessage = hasCopyrightHistory
+      ? `"${file.title || file.filename}" currently has copyright status "${file.copyrightStatus.replace(
+          /_/g,
+          " "
+        )}". This hard-delete bypasses the reversible Copyright Review flow — the uploader won't be able to dispute it and it can't be restored afterward. Consider using the Copyright Review Queue's "Remove" action instead, which keeps that option open.\n\nDelete anyway? This cannot be undone.`
+      : `Delete "${file.title || file.filename}"? This action cannot be undone.`;
+
+    if (!window.confirm(confirmMessage)) {
       return;
     }
 
@@ -370,7 +380,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Navigation */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-7">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-7">
           <AdminNavButton
             active={activeSection === "overview"}
             icon="bar-chart"
@@ -390,6 +400,13 @@ export default function AdminDashboard() {
             icon="folder"
             title="File Management"
             onClick={() => openSection("files")}
+          />
+
+          <AdminNavButton
+            active={activeSection === "copyright"}
+            icon="shield"
+            title="Copyright Review"
+            onClick={() => openSection("copyright")}
           />
 
           <AdminNavButton
@@ -540,7 +557,20 @@ export default function AdminDashboard() {
                             </td>
 
                             <td className="px-5 py-4">
-                              <RoleBadge role={user.role} />
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <RoleBadge role={user.role} />
+                                {user.terminatedAt && <StandingBadge tone="terminated">Terminated</StandingBadge>}
+                                {!user.terminatedAt &&
+                                  user.suspendedUntil &&
+                                  new Date(user.suspendedUntil) > new Date() && (
+                                    <StandingBadge tone="suspended">Suspended</StandingBadge>
+                                  )}
+                                {Boolean(user.copyrightWarnings) && (
+                                  <StandingBadge tone="warned">
+                                    {user.copyrightWarnings} warning{user.copyrightWarnings === 1 ? "" : "s"}
+                                  </StandingBadge>
+                                )}
+                              </div>
                             </td>
 
                             <td className="px-5 py-4 text-slate-600">
@@ -553,6 +583,16 @@ export default function AdminDashboard() {
 
                             <td className="px-5 py-4">
                               <div className="flex flex-wrap justify-end gap-2">
+                                {!isCurrentAdmin && (
+                                  <button
+                                    onClick={() => setCopyrightUserId(user.id)}
+                                    disabled={Boolean(actionLoading)}
+                                    className="px-3 py-2 rounded-lg bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    Copyright
+                                  </button>
+                                )}
+
                                 {!isCurrentAdmin && (
                                   <button
                                     onClick={() => changeRole(user)}
@@ -633,6 +673,7 @@ export default function AdminDashboard() {
                       <th className="text-left px-5 py-4">Material</th>
                       <th className="text-left px-5 py-4">Course</th>
                       <th className="text-left px-5 py-4">Uploader</th>
+                      <th className="text-left px-5 py-4">Copyright</th>
                       <th className="text-left px-5 py-4">Downloads</th>
                       <th className="text-right px-5 py-4">Action</th>
                     </tr>
@@ -641,7 +682,7 @@ export default function AdminDashboard() {
                   <tbody>
                     {filteredFiles.length === 0 ? (
                       <EmptyRow
-                        colSpan="5"
+                        colSpan="6"
                         text="No uploaded files match your search."
                       />
                     ) : (
@@ -680,6 +721,10 @@ export default function AdminDashboard() {
                             </p>
                           </td>
 
+                          <td className="px-5 py-4">
+                            <FileCopyrightBadge status={file.copyrightStatus} />
+                          </td>
+
                           <td className="px-5 py-4 text-slate-600">
                             {file.downloads ?? 0}
                           </td>
@@ -704,6 +749,9 @@ export default function AdminDashboard() {
             </div>
           </section>
         )}
+
+        {/* COPYRIGHT REVIEW */}
+        {activeSection === "copyright" && <CopyrightReviewPanel />}
 
         {/* DEVELOPER CONTROLS */}
         {activeSection === "developer" && (
@@ -763,19 +811,56 @@ export default function AdminDashboard() {
                 {api.defaults.baseURL}/admin
               </code>
 
-              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <ApiEndpoint method="GET" path="/admin/check" />
-                <ApiEndpoint method="GET" path="/admin/stats" />
-                <ApiEndpoint method="GET" path="/admin/users" />
-                <ApiEndpoint method="PATCH" path="/admin/users/:id/role" />
-                <ApiEndpoint method="DELETE" path="/admin/users/:id" />
-                <ApiEndpoint method="GET" path="/admin/files" />
-                <ApiEndpoint method="DELETE" path="/admin/files/:id" />
+              <div className="mt-5 space-y-4">
+                <ApiEndpointGroup title="Users">
+                  <ApiEndpoint method="GET" path="/admin/check" />
+                  <ApiEndpoint method="GET" path="/admin/stats" />
+                  <ApiEndpoint method="GET" path="/admin/users" />
+                  <ApiEndpoint method="PATCH" path="/admin/users/:id/role" />
+                  <ApiEndpoint method="DELETE" path="/admin/users/:id" />
+                </ApiEndpointGroup>
+
+                <ApiEndpointGroup title="Materials (legacy hard-delete)">
+                  <ApiEndpoint method="GET" path="/admin/files" />
+                  <ApiEndpoint method="DELETE" path="/admin/files/:id" />
+                </ApiEndpointGroup>
+
+                <ApiEndpointGroup title="Copyright Review Queue">
+                  <ApiEndpoint method="GET" path="/admin/copyright/stats" />
+                  <ApiEndpoint method="GET" path="/admin/copyright/queue" />
+                  <ApiEndpoint method="GET" path="/admin/copyright/files/:id" />
+                  <ApiEndpoint method="POST" path="/admin/copyright/files/:id/actions" />
+                  <ApiEndpoint method="POST" path="/admin/copyright/files/:id/notes" />
+                </ApiEndpointGroup>
+
+                <ApiEndpointGroup title="Copyright — account enforcement">
+                  <ApiEndpoint method="GET" path="/admin/copyright/users/:id/history" />
+                  <ApiEndpoint method="POST" path="/admin/copyright/users/:id/actions" />
+                </ApiEndpointGroup>
+
+                <ApiEndpointGroup title="Copyright — reports & disputes">
+                  <ApiEndpoint method="GET" path="/admin/copyright/reports" />
+                  <ApiEndpoint method="PATCH" path="/admin/copyright/reports/:id" />
+                  <ApiEndpoint method="GET" path="/admin/copyright/disputes" />
+                  <ApiEndpoint method="PATCH" path="/admin/copyright/disputes/:id" />
+                </ApiEndpointGroup>
+
+                <ApiEndpointGroup title="Copyright — audit log">
+                  <ApiEndpoint method="GET" path="/admin/copyright/audit-log" />
+                </ApiEndpointGroup>
               </div>
             </div>
           </section>
         )}
       </main>
+
+      {copyrightUserId && (
+        <UserCopyrightDrawer
+          userId={copyrightUserId}
+          onClose={() => setCopyrightUserId(null)}
+          onChanged={() => { loadUsers(); loadStats(); }}
+        />
+      )}
     </div>
   );
 }
@@ -826,6 +911,44 @@ function RoleBadge({ role }) {
       }`}
     >
       {role}
+    </span>
+  );
+}
+
+function StandingBadge({ tone, children }) {
+  const tones = {
+    suspended: "bg-orange-100 text-orange-700",
+    terminated: "bg-red-100 text-red-700",
+    warned: "bg-amber-100 text-amber-700",
+  };
+  return (
+    <span
+      className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${tones[tone] || "bg-slate-100 text-slate-600"}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+const FILE_COPYRIGHT_STYLES = {
+  PENDING: "bg-slate-100 text-slate-700",
+  CLEARED: "bg-green-100 text-green-700",
+  REVIEW_REQUIRED: "bg-amber-100 text-amber-700",
+  RESTRICTED: "bg-orange-100 text-orange-700",
+  REMOVED: "bg-red-100 text-red-700",
+  REJECTED: "bg-slate-200 text-slate-600",
+};
+
+// Shown in File Management so a hard-delete here is never done blind to
+// the fact this file might already be mid-way through the reversible
+// Copyright Review flow (see the confirm() warning in deleteFile()).
+function FileCopyrightBadge({ status }) {
+  if (!status) return <span className="text-slate-300 text-xs">—</span>;
+  return (
+    <span
+      className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${FILE_COPYRIGHT_STYLES[status] || "bg-slate-100 text-slate-600"}`}
+    >
+      {status.replace(/_/g, " ")}
     </span>
   );
 }
@@ -943,6 +1066,15 @@ function SystemCard({ icon, title, value, healthy }) {
 
         <p className="font-black text-slate-800">{value}</p>
       </div>
+    </div>
+  );
+}
+
+function ApiEndpointGroup({ title, children }) {
+  return (
+    <div>
+      <p className="text-xs font-black uppercase tracking-wide text-slate-400 mb-2">{title}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</div>
     </div>
   );
 }

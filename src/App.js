@@ -21,6 +21,9 @@ import NotificationBell from "./components/NotificationBell";
 import JoinCircleInvitation from "./pages/JoinCircleInvitation";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
+import CopyrightPolicy from "./pages/CopyrightPolicy";
+import AcceptCopyrightPolicy from "./pages/AcceptCopyrightPolicy";
 
 function ProtectedLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,7 +53,7 @@ function ProtectedLayout({ children }) {
 // visitor (or someone who just logged out) should never land on a red/green/etc.
 // login or registration screen just because the account they used last time
 // had a custom accent saved.
-const ALWAYS_BLUE_ROUTES = ["/login", "/register"];
+const ALWAYS_BLUE_ROUTES = ["/login", "/register", "/accept-policy"];
 
 function AppearanceManager() {
   const location = useLocation();
@@ -97,6 +100,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/accept-policy" element={<AcceptCopyrightPolicy />} />
 
         <Route
           path="/"
@@ -212,6 +216,8 @@ export default function App() {
         />
 
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/copyright" element={<CopyrightPolicy />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
