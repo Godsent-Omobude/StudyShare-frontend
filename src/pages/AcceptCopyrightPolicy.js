@@ -21,7 +21,13 @@ export default function AcceptCopyrightPolicy() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  const pendingToken = location.state?.pendingToken || null;
+  // Keep the pending token available if the acceptance page is refreshed.
+  // Login passes it through React Router state, but router state is lost on
+  // a full page refresh. The token is short-lived (10 minutes) and carries
+  // no normal session privileges, so sessionStorage is appropriate here.
+  const pendingToken =
+    location.state?.pendingToken || sessionStorage.getItem("copyrightPolicyPendingToken") || null;
+
   const redirectTo = safeInternalPath(
     location.state?.redirectTo || searchParams.get("redirect"),
     "/"
@@ -53,16 +59,45 @@ export default function AcceptCopyrightPolicy() {
 
     try {
       setLoading(true);
+      // Save it before making the request so a refresh during this step does
+      // not lose the only credential that can complete the acceptance flow.
+      if (pendingToken) {
+        sessionStorage.setItem("copyrightPolicyPendingToken", pendingToken);
+      }
+
       const response = await api.post("/auth/accept-copyright-policy", {
         pendingToken: pendingToken || undefined,
       });
+
+      sessionStorage.removeItem("copyrightPolicyPendingToken");
       finishLogin(response.data);
     } catch (err) {
-      if (err.response?.status === 401) {
-        setError("This request has expired. Please log in again.");
+      // Do not hide the actual failure behind a generic message. Axios has no
+      // response object for browser/network/CORS failures, while backend
+      // errors normally include a status and message.
+      console.error("Copyright policy acceptance failed:", err);
+
+      if (!err.response) {
+        setError(
+          "Unable to connect to the Study2Gate server. Please check your internet connection and try again."
+        );
+      } else if (err.response.status === 401) {
+        sessionStorage.removeItem("copyrightPolicyPendingToken");
+        setError(
+          err.response.data?.message ||
+            "This request has expired. Please log in again."
+        );
         setTimeout(() => navigate("/login"), 1500);
+      } else if (err.response.status === 429) {
+        setError(
+          err.response.data?.message ||
+            "Too many requests. Please wait a moment and try again."
+        );
       } else {
-        setError(err.response?.data?.message || "Unable to record your acceptance.");
+        setError(
+          err.response.data?.message ||
+            `Unable to record your acceptance (server returned ${err.response.status}).`
+        );
       }
     } finally {
       setLoading(false);
