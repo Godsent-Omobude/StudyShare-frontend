@@ -12,6 +12,9 @@ import {
   ArrowLeft,
   Download,
   ExternalLink,
+  FileText,
+  Ban,
+  Trash2,
 } from "lucide-react";
 import api from "../api/api";
 
@@ -32,9 +35,9 @@ const STATUS_STYLES = {
 
 const QUEUE_FILTERS = [
   { key: "all", label: "All" },
-  { key: "high", label: "🔴 High Risk" },
-  { key: "medium", label: "🟡 Medium Risk" },
-  { key: "cleared", label: "🟢 Cleared" },
+  { key: "high", label: "High Risk", dot: "bg-red-500" },
+  { key: "medium", label: "Medium Risk", dot: "bg-amber-400" },
+  { key: "cleared", label: "Cleared", dot: "bg-green-500" },
   { key: "reported", label: "Reported" },
   { key: "restricted", label: "Restricted" },
   { key: "removed", label: "Removed" },
@@ -99,13 +102,13 @@ export default function CopyrightReviewPanel() {
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-        <MiniStat label="🔴 High Risk" value={stats?.high} />
-        <MiniStat label="🟡 Under Review" value={stats?.medium} />
-        <MiniStat label="🟢 Cleared" value={stats?.cleared} />
-        <MiniStat label="📄 Reported" value={stats?.reported} />
-        <MiniStat label="🚫 Restricted" value={stats?.restricted} />
-        <MiniStat label="🗑 Removed" value={stats?.removed} />
-        <MiniStat label="⚖️ Open Disputes" value={stats?.pendingDisputes} />
+        <MiniStat label="High Risk" value={stats?.high} dot="bg-red-500" />
+        <MiniStat label="Under Review" value={stats?.medium} dot="bg-amber-400" />
+        <MiniStat label="Cleared" value={stats?.cleared} dot="bg-green-500" />
+        <MiniStat label="Reported" value={stats?.reported} icon={FileText} />
+        <MiniStat label="Restricted" value={stats?.restricted} icon={Ban} />
+        <MiniStat label="Removed" value={stats?.removed} icon={Trash2} />
+        <MiniStat label="Open Disputes" value={stats?.pendingDisputes} icon={Scale} />
       </div>
 
       <div className="flex gap-2 mb-5 border-b border-slate-200">
@@ -136,10 +139,18 @@ function TabButton({ active, onClick, icon: IconCmp, label }) {
   );
 }
 
-function MiniStat({ label, value }) {
+function Dot({ color }) {
+  return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />;
+}
+
+function MiniStat({ label, value, dot, icon: IconCmp }) {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4">
-      <p className="text-xs font-semibold text-slate-500">{label}</p>
+      <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+        {dot && <Dot color={dot} />}
+        {IconCmp && <IconCmp className="h-3.5 w-3.5" />}
+        {label}
+      </p>
       <p className="text-2xl font-black text-slate-800 mt-1">{value ?? "—"}</p>
     </div>
   );
@@ -220,10 +231,11 @@ function QueueTab({ notify, fail, onChanged }) {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold border ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${
               filter === f.key ? "bg-brand-blue text-white border-brand-blue" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
             }`}
           >
+            {f.dot && <Dot color={f.dot} />}
             {f.label}
           </button>
         ))}
@@ -438,7 +450,18 @@ function FileDetailDrawer({ fileId, onClose, onNavigate, onBack, notify, fail, o
             </div>
 
             <Card title="Automated evidence">
-              <Row label="Risk score" value={`${data.file.copyrightScore ?? 0} / 100`} />
+              {data.file.copyrightScanFailed ? (
+                <Row
+                  label="Risk score"
+                  value={
+                    <span className="inline-flex items-center gap-1.5 text-amber-700 font-bold">
+                      <AlertTriangle className="h-3.5 w-3.5" /> Scan failed — needs manual review
+                    </span>
+                  }
+                />
+              ) : (
+                <Row label="Risk score" value={`${data.file.copyrightScore ?? 0} / 100`} />
+              )}
               <Row label="Similarity to closest match" value={data.file.similarityScore ? pct(data.file.similarityScore) : "None found"} />
               {data.file.duplicateOf && (
                 <div className="mt-2 mb-1 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">

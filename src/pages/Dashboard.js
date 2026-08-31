@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Upload, Download, Layers, Flame, Sparkles, Users } from "lucide-react";
 import api from "../api/api";
 import FlashcardSetCard from "../components/FlashcardSetCard";
 import ReportModal from "../components/ReportModal";
@@ -31,6 +32,41 @@ export default function Dashboard() {
   const [loadError, setLoadError] = useState("");
 
   const userName = localStorage.getItem("fullName") || "Student";
+  const [profilePictureUrl, setProfilePictureUrl] = useState("");
+
+  useEffect(() => {
+    let objectUrl = "";
+    const loadPicture = async () => {
+      try {
+        if (!localStorage.getItem("profilePicture")) return;
+        const response = await api.get("/settings/profile-picture", {
+          responseType: "blob",
+        });
+        objectUrl = URL.createObjectURL(response.data);
+        setProfilePictureUrl(objectUrl);
+      } catch {
+        setProfilePictureUrl("");
+      }
+    };
+    loadPicture();
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, []);
+
+  const nameParts = userName.trim().split(/\s+/);
+  const firstName = nameParts[0] || "Student";
+  const initials = (
+    (nameParts[0]?.[0] || "S") + (nameParts[1]?.[0] || "")
+  ).toUpperCase();
+
+  const timeGreeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return { eyebrow: "Good morning", suffix: "" };
+    if (hour >= 12 && hour < 17) return { eyebrow: "Good afternoon", suffix: "" };
+    if (hour >= 17 && hour < 21) return { eyebrow: "Good evening", suffix: "" };
+    return { eyebrow: "Studying late", suffix: "?" };
+  }, []);
 
   const fetchFiles = async () => {
     try {
@@ -235,13 +271,31 @@ export default function Dashboard() {
         <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-r from-[#171238] via-[#4b46d1] to-violet-600 p-6 text-white shadow-xl sm:p-8">
           <div className="flex flex-col gap-6">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-200">
-                Welcome back
-              </p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
-                Welcome, {userName} 👋
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-violet-100 sm:text-base">
+              <div className="flex items-center gap-3">
+                {profilePictureUrl ? (
+                  <img
+                    src={profilePictureUrl}
+                    alt="Profile"
+                    className="h-12 w-12 flex-shrink-0 rounded-full object-cover ring-2 ring-white/30"
+                  />
+                ) : (
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-white/15 text-base font-black text-white">
+                    {initials}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-200">
+                    {timeGreeting.eyebrow}
+                  </p>
+                  <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">
+                    <span className="border-b-[3px] border-amber-300 pb-0.5">
+                      {firstName}
+                    </span>
+                    {timeGreeting.suffix}
+                  </h1>
+                </div>
+              </div>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-violet-100 sm:text-base">
                 Your academic workspace for sharing materials, generating
                 flashcards and studying smarter.
               </p>
@@ -250,9 +304,10 @@ export default function Dashboard() {
             <div className="flex flex-wrap gap-3">
               <Link
                 to="/generate-flashcards"
-                className="inline-flex w-fit items-center rounded-xl bg-white px-5 py-3 text-sm font-black text-violet-700 shadow-lg transition hover:bg-violet-50 active:scale-[0.98]"
+                className="inline-flex w-fit items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-black text-violet-700 shadow-lg transition hover:bg-violet-50 active:scale-[0.98]"
               >
-                ✦ Generate Flashcards
+                <Sparkles className="h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
+                Generate Flashcards
               </Link>
               <Link
                 to="/my-flashcards"
@@ -262,9 +317,10 @@ export default function Dashboard() {
               </Link>
               <Link
                 to="/circles"
-                className="inline-flex w-fit items-center rounded-xl border border-white/30 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+                className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/30 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
               >
-                👥 Study Circles
+                <Users className="h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
+                Study Circles
               </Link>
             </div>
           </div>
@@ -279,7 +335,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                ▣
+                <Upload className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
               </div>
               <p className="text-2xl font-black tracking-tight text-slate-900">
                 {files.length}
@@ -288,7 +344,7 @@ export default function Dashboard() {
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                ↓
+                <Download className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
               </div>
               <p className="text-2xl font-black tracking-tight text-slate-900">
                 {totalDownloads}
@@ -297,7 +353,7 @@ export default function Dashboard() {
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                ✦
+                <Layers className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
               </div>
               <p className="text-2xl font-black tracking-tight text-slate-900">
                 {flashcardSets.length}
@@ -309,7 +365,7 @@ export default function Dashboard() {
             <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-4 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
-                  🔥
+                  <Flame className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
                 </div>
                 {streak.currentStreak > 0 && (
                   <span

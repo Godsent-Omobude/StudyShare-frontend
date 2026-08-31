@@ -256,7 +256,14 @@ export default function AdminDashboard() {
     try {
       const res = await api.delete(`/admin/files/${file.id}`);
 
-      setMessage(res.data.message || "File deleted successfully.");
+      if (res.data.warning) {
+        // Record deletion still succeeded, but storage cleanup did not —
+        // surface this as a warning rather than a plain success message so
+        // it isn't missed (see adminController.deleteAdminFile).
+        setError(res.data.warning);
+      } else {
+        setMessage(res.data.message || "File deleted successfully.");
+      }
 
       await Promise.all([loadFiles(), loadStats()]);
     } catch (err) {
