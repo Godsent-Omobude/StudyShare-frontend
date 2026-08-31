@@ -43,7 +43,7 @@ export default function Dashboard() {
 
   const fetchFlashcards = async () => {
     try {
-      const response = await api.get("/flashcards");
+      const response = await api.get("/ai/flashcards");
       setFlashcardSets(
         Array.isArray(response.data) ? response.data.slice(0, 4) : []
       );
@@ -497,7 +497,7 @@ export default function Dashboard() {
                     set={set}
                     onDelete={async (id) => {
                       try {
-                        await api.delete(`/flashcards/${id}`);
+                        await api.delete(`/ai/flashcards/${id}`);
                         fetchFlashcards();
                       } catch (error) {
                         window.alert(
