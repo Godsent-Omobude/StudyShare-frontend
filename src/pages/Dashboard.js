@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [copyrightConfirmed, setCopyrightConfirmed] = useState(false);
   const [uploadMsg, setUploadMsg] = useState({ text: "", isError: false });
+  const [isUploading, setIsUploading] = useState(false);
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadedId, setDownloadedId] = useState(null);
   const [reportFile, setReportFile] = useState(null);
@@ -99,6 +100,8 @@ export default function Dashboard() {
     formData.append("copyrightConfirmation", "true");
     formData.append("file", selectedFile);
 
+    setIsUploading(true);
+
     try {
       const response = await api.post("/files/upload", formData, {
         headers: {
@@ -126,6 +129,8 @@ export default function Dashboard() {
         text: error.response?.data?.message || "Upload failed.",
         isError: true,
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -411,10 +416,16 @@ export default function Dashboard() {
 
               <button
                 type="submit"
-                disabled={!copyrightConfirmed}
-                className="w-full rounded-xl bg-violet-600 py-3 text-sm font-black text-white shadow-lg shadow-violet-100 hover:bg-violet-700"
+                disabled={!copyrightConfirmed || isUploading}
+                className="w-full rounded-xl bg-violet-600 py-3 text-sm font-black text-white shadow-lg shadow-violet-100 hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Publish Document
+                {isUploading && (
+                  <span
+                    aria-hidden="true"
+                    className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin"
+                  />
+                )}
+                {isUploading ? "Publishing..." : "Publish Document"}
               </button>
             </form>
           </section>
