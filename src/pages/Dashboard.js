@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadedId, setDownloadedId] = useState(null);
   const [reportFile, setReportFile] = useState(null);
+  const [loadError, setLoadError] = useState("");
 
   const userName = localStorage.getItem("fullName") || "Student";
 
@@ -36,6 +37,7 @@ export default function Dashboard() {
       setFiles(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Unable to fetch files.", error);
+      setLoadError("Unable to load your materials right now. Please refresh the page.");
     }
   };
 
@@ -47,6 +49,7 @@ export default function Dashboard() {
       );
     } catch (error) {
       console.error("Unable to fetch flashcard sets.", error);
+      setLoadError("Unable to load your flashcard sets right now. Please refresh the page.");
     }
   };
 
@@ -56,6 +59,9 @@ export default function Dashboard() {
       if (response.data?.streak) setStreak(response.data.streak);
     } catch (error) {
       console.error("Unable to fetch study streak.", error);
+      // Not surfaced via loadError: the streak panel degrades gracefully
+      // to its zero-state defaults, and a banner over the whole dashboard
+      // for a non-essential widget would overstate the problem.
     }
   };
 
@@ -216,6 +222,11 @@ export default function Dashboard() {
   return (
     <main className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
+        {loadError && (
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            {loadError}
+          </div>
+        )}
         <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-r from-[#171238] via-[#4b46d1] to-violet-600 p-6 text-white shadow-xl sm:p-8">
           <div className="flex flex-col gap-6">
             <div>

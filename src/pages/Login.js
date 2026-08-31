@@ -4,7 +4,9 @@ import api from "../api/api";
 import logo from "../assets/study2gate-logo.png";
 import { Eye, EyeOff } from "lucide-react";
 import { safeInternalPath } from "../utils/safeRedirect";
+import { friendlyErrorMessage } from "../utils/errorMessage";
 import EqualizerLoader from "../components/EqualizerLoader";
+import BackendStatusBanner from "../components/BackendStatusBanner";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -62,7 +64,7 @@ export default function Login() {
         });
         return;
       } else {
-        setError(err.response?.data?.message || "Authentication system failure.");
+        setError(friendlyErrorMessage(err, "Authentication system failure."));
       }
     } finally {
       setLoading(false);
@@ -70,8 +72,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#171238] px-4 py-10">
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
+    <>
+      <BackendStatusBanner />
+      <div className="min-h-screen bg-[#171238] px-4 py-10">
+        <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
         <div className="grid w-full overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-2">
           <div className="hidden bg-gradient-to-br from-[#171238] to-blue-700 p-12 text-white lg:block">
             <div className="flex items-center gap-3">
@@ -200,6 +204,6 @@ export default function Login() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

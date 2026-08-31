@@ -5,7 +5,9 @@ import study2gateLogo from "../assets/study2gate-logo.png";
 import { Eye, EyeOff } from "lucide-react";
 import PasswordRequirementsChecklist from "../components/PasswordRequirementsChecklist";
 import EqualizerLoader from "../components/EqualizerLoader";
+import BackendStatusBanner from "../components/BackendStatusBanner";
 import { isPasswordValid } from "../utils/passwordRequirements";
+import { friendlyErrorMessage } from "../utils/errorMessage";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
@@ -93,15 +95,17 @@ export default function Register() {
         },
       });
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failure.");
+      setError(friendlyErrorMessage(err, "Registration failure."));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#171238] px-4 py-6 sm:py-10">
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-md items-center justify-center">
+    <>
+      <BackendStatusBanner />
+      <div className="min-h-screen bg-[#171238] px-4 py-6 sm:py-10">
+        <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-md items-center justify-center">
         <div className="w-full overflow-hidden rounded-3xl bg-white shadow-2xl">
           <div className="bg-gradient-to-br from-[#171238] via-[#2f2a8f] to-[#635bff] px-6 pb-7 pt-8 text-white">
             <div className="flex items-center justify-center gap-3">
@@ -309,6 +313,6 @@ export default function Register() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

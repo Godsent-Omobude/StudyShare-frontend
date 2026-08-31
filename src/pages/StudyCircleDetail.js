@@ -180,13 +180,19 @@ function MaterialsTab({ circleId }) {
               <p className="mt-0.5 text-xs text-slate-400">
                 {s.file.courseCode} · shared by {s.sharedByUsername}
               </p>
-              <button
-                onClick={() => downloadFile(s.file.id, s.file.title)}
-                disabled={downloadingId === s.file.id}
-                className="mt-3 inline-block rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700 hover:bg-violet-100 disabled:opacity-50"
-              >
-                {downloadingId === s.file.id ? "Downloading..." : "↓ Download"}
-              </button>
+              {s.unavailable ? (
+                <p className="mt-3 inline-block rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">
+                  Unavailable — under copyright review
+                </p>
+              ) : (
+                <button
+                  onClick={() => downloadFile(s.file.id, s.file.title)}
+                  disabled={downloadingId === s.file.id}
+                  className="mt-3 inline-block rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700 hover:bg-violet-100 disabled:opacity-50"
+                >
+                  {downloadingId === s.file.id ? "Downloading..." : "↓ Download"}
+                </button>
+              )}
             </div>
           ))}
         </div>
