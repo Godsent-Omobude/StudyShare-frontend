@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Upload, Download, Layers, Flame, Sparkles, Users } from "lucide-react";
+import { Upload, Download, Layers, Flame, Sparkles } from "lucide-react";
 import api from "../api/api";
 import FlashcardSetCard from "../components/FlashcardSetCard";
 import ReportModal from "../components/ReportModal";
@@ -62,10 +62,16 @@ export default function Dashboard() {
 
   const timeGreeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return { eyebrow: "Good morning", suffix: "" };
-    if (hour >= 12 && hour < 17) return { eyebrow: "Good afternoon", suffix: "" };
-    if (hour >= 17 && hour < 21) return { eyebrow: "Good evening", suffix: "" };
+    if (hour >= 5 && hour < 12) return { eyebrow: "Good morning", suffix: "." };
+    if (hour >= 12 && hour < 17) return { eyebrow: "Good afternoon", suffix: "." };
+    if (hour >= 17 && hour < 21) return { eyebrow: "Good evening", suffix: "." };
     return { eyebrow: "Studying late", suffix: "?" };
+  }, []);
+
+  const [taglineVisible, setTaglineVisible] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setTaglineVisible(true), 100);
+    return () => clearTimeout(t);
   }, []);
 
   const fetchFiles = async () => {
@@ -268,7 +274,7 @@ export default function Dashboard() {
             {loadError}
           </div>
         )}
-        <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-r from-[#171238] via-[#4b46d1] to-violet-600 p-6 text-white shadow-xl sm:p-8">
+        <section className="mb-6 overflow-hidden rounded-tl-[4px] rounded-tr-[28px] rounded-br-[4px] rounded-bl-[28px] bg-violet-600 p-6 text-white shadow-xl sm:p-8">
           <div className="flex flex-col gap-6">
             <div>
               <div className="flex items-center gap-3">
@@ -295,9 +301,14 @@ export default function Dashboard() {
                   </h1>
                 </div>
               </div>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-violet-100 sm:text-base">
-                Your academic workspace for sharing materials, generating
-                flashcards and studying smarter.
+              <p
+                className={`mt-3 max-w-2xl text-sm font-bold leading-6 text-violet-100 transition-all duration-700 ease-out sm:text-base ${
+                  taglineVisible
+                    ? "translate-x-0 opacity-100"
+                    : "-translate-x-6 opacity-0"
+                }`}
+              >
+                Share. Study. Succeed.
               </p>
             </div>
 
@@ -308,19 +319,6 @@ export default function Dashboard() {
               >
                 <Sparkles className="h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
                 Generate Flashcards
-              </Link>
-              <Link
-                to="/my-flashcards"
-                className="inline-flex w-fit items-center rounded-xl border border-white/30 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
-              >
-                My Flashcards
-              </Link>
-              <Link
-                to="/circles"
-                className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/30 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
-              >
-                <Users className="h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
-                Study Circles
               </Link>
             </div>
           </div>
@@ -362,7 +360,7 @@ export default function Dashboard() {
                 Flashcard Sets
               </p>
             </div>
-            <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-4 shadow-sm">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
                   <Flame className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
@@ -487,7 +485,7 @@ export default function Dashboard() {
           </section>
 
           <div className="space-y-6">
-            <section className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
+            <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <h2 className="text-xl font-black text-slate-900">
                   Study streak 🔥

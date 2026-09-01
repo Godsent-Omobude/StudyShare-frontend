@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { Users, Upload, ArrowRight, Sparkles, FileText } from "lucide-react";
 import api from "../api/api";
 import FlashcardList from "../components/FlashcardList";
 
@@ -202,7 +203,7 @@ export default function GenerateFlashcards() {
           </p>
           {circleId && (
             <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700">
-              👥 Generating for {circleName || "your Study Circle"} — this set
+              <Users className="h-3.5 w-3.5" /> Generating for {circleName || "your Study Circle"} — this set
               will be shared with the whole circle.
             </div>
           )}
@@ -225,7 +226,7 @@ export default function GenerateFlashcards() {
                   1. Upload Document
                 </label>
                 <label className="mt-2 flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-violet-300 bg-violet-50/40 px-5 text-center transition hover:bg-violet-50">
-                  <span className="text-4xl text-violet-600">↥</span>
+                  <Upload className="h-10 w-10 text-violet-600" strokeWidth={1.75} />
                   <span className="mt-2 font-bold text-slate-800">
                     {document ? document.name : "Click to browse for a document"}
                   </span>
@@ -362,8 +363,8 @@ export default function GenerateFlashcards() {
                   {circleId && (
                     <>
                       {" "}
-                      <Link to={`/circles/${circleId}?tab=flashcards`} className="underline">
-                        View in circle →
+                      <Link to={`/circles/${circleId}?tab=flashcards`} className="inline-flex items-center gap-1 underline">
+                        View in circle <ArrowRight className="h-3.5 w-3.5" />
                       </Link>
                     </>
                   )}
@@ -383,7 +384,11 @@ export default function GenerateFlashcards() {
                   ? "Generating..."
                   : pdfInfoLoading
                   ? "Analysing PDF..."
-                  : "✦ Generate Flashcards"}
+                  : (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4" /> Generate Flashcards
+                    </span>
+                  )}
               </button>
             </form>
           </section>
@@ -391,7 +396,7 @@ export default function GenerateFlashcards() {
           <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
             <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
               <div className="rounded-2xl bg-violet-50 p-5">
-                <p className="text-2xl">📄</p>
+                <FileText className="h-7 w-7 text-violet-700" />
                 <h3 className="mt-3 font-black text-slate-900">
                   Upload
                 </h3>
@@ -401,7 +406,7 @@ export default function GenerateFlashcards() {
               </div>
 
               <div className="rounded-2xl bg-emerald-50 p-5">
-                <p className="text-2xl">✦</p>
+                <Sparkles className="h-7 w-7 text-emerald-700" />
                 <h3 className="mt-3 font-black text-slate-900">
                   Generate
                 </h3>
@@ -411,7 +416,7 @@ export default function GenerateFlashcards() {
               </div>
 
               <div className="rounded-2xl bg-blue-50 p-5">
-                <p className="text-2xl">▤</p>
+                <FileText className="h-7 w-7 text-blue-700" />
                 <h3 className="mt-3 font-black text-slate-900">
                   Study & Learn
                 </h3>

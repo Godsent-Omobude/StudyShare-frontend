@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Check, Download } from "lucide-react";
 import api from "../api/api";
 import DisputeModal from "../components/DisputeModal";
 
@@ -252,9 +253,9 @@ export default function Materials() {
                             Downloading...
                           </>
                         ) : downloadedId === fileId ? (
-                          "✓ Downloaded"
+                          <><Check className="h-3.5 w-3.5" /> Downloaded</>
                         ) : (
-                          "↓ Download"
+                          <><Download className="h-3.5 w-3.5" /> Download</>
                         )}
                       </button>
                     </div>

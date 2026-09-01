@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Users } from "lucide-react";
 import api from "../api/api";
 
 const VISIBILITY_BADGE = {
@@ -428,8 +429,8 @@ export default function StudyCircles() {
             </div>
           ) : myCircles.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-50 text-3xl text-violet-600">
-                👥
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+                <Users className="h-8 w-8" />
               </div>
               <h2 className="mt-5 text-xl font-black text-slate-900">
                 No Study Circles yet

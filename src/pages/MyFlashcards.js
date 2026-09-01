@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { RotateCcw, ArrowLeft, FileText } from "lucide-react";
 import api from "../api/api";
 import FlashcardList from "../components/FlashcardList";
 import FlashcardSetCard from "../components/FlashcardSetCard";
@@ -105,9 +106,9 @@ export default function MyFlashcards() {
             {sets.length > 0 && (
               <Link
                 to="/my-flashcards/study-all"
-                className="rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-bold text-violet-700 shadow-sm hover:bg-violet-50"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-bold text-violet-700 shadow-sm hover:bg-violet-50"
               >
-                🔁 Study All (Spaced Repetition)
+                <RotateCcw className="h-4 w-4" /> Study All (Spaced Repetition)
               </Link>
             )}
             <Link
@@ -131,9 +132,9 @@ export default function MyFlashcards() {
               <div>
                 <Link
                   to="/my-flashcards"
-                  className="text-xs font-bold text-violet-600"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-violet-600"
                 >
-                  ← Back to My Flashcards
+                  <ArrowLeft className="h-3.5 w-3.5" /> Back to My Flashcards
                 </Link>
                 <h2 className="mt-2 text-2xl font-black text-slate-900">
                   {selectedSet.title || "Untitled Flashcards"}
@@ -172,8 +173,8 @@ export default function MyFlashcards() {
           <>
             {sets.length === 0 ? (
               <section className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-50 text-3xl text-violet-600">
-                  ▤
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+                  <FileText className="h-8 w-8" />
                 </div>
                 <h2 className="mt-5 text-xl font-black text-slate-900">
                   No saved flashcards yet

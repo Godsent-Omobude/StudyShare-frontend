@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
 import study2gateLogo from "../assets/study2gate-logo.png";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Check, X } from "lucide-react";
 import PasswordRequirementsChecklist from "../components/PasswordRequirementsChecklist";
 import EqualizerLoader from "../components/EqualizerLoader";
 import BackendStatusBanner from "../components/BackendStatusBanner";
@@ -186,13 +186,13 @@ export default function Register() {
                         : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"
                   }`}
                 />
-                <p className={`mt-2 text-xs font-semibold ${
+                <p className={`mt-2 flex items-center gap-1 text-xs font-semibold ${
                   usernameStatus === "taken" ? "text-red-600" :
                   usernameStatus === "available" ? "text-green-600" : "text-slate-400"
                 }`}>
                   {usernameStatus === "checking" && "Checking username..."}
-                  {usernameStatus === "available" && "✓ Username is available"}
-                  {usernameStatus === "taken" && "✕ Username is already taken"}
+                  {usernameStatus === "available" && (<><Check className="h-3.5 w-3.5" /> Username is available</>)}
+                  {usernameStatus === "taken" && (<><X className="h-3.5 w-3.5" /> Username is already taken</>)}
                   {!usernameStatus && "3–30 characters: letters, numbers, dots, underscores or hyphens."}
                 </p>
               </div>

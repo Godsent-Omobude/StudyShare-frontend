@@ -82,17 +82,18 @@ html[data-accent] .ring-brand-blue:not(.logo-mark),
 html[data-accent] .focus\:ring-brand-blue:focus:not(.logo-mark) {
   --tw-ring-color: var(--accent) !important;
 }
+/* Any gradient utility classes tied to the accent color are flattened to a
+   single pure/solid fill instead of blending — from/via/to gradients render
+   as one flat accent color everywhere in the app, matching the Settings
+   accent color choice, per explicit preference: no color blending. */
 html[data-accent] .to-violet-600:not(.logo-mark),
 html[data-accent] .to-blue-700:not(.logo-mark),
-html[data-accent] .to-\[\#635bff\]:not(.logo-mark) {
-  --tw-gradient-to: var(--accent) !important;
-}
-html[data-accent] .from-violet-600:not(.logo-mark) {
-  --tw-gradient-from: var(--accent) !important;
-}
+html[data-accent] .to-\[\#635bff\]:not(.logo-mark),
+html[data-accent] .from-violet-600:not(.logo-mark),
 html[data-accent] .via-\[\#4b46d1\]:not(.logo-mark),
 html[data-accent] .via-\[\#2f2a8f\]:not(.logo-mark) {
-  --tw-gradient-stops: var(--tw-gradient-from), var(--accent-hover), var(--tw-gradient-to) !important;
+  background-image: none !important;
+  background-color: var(--accent) !important;
 }
 html[data-accent] .hover\:bg-\[\#5148e8\]:hover:not(.logo-mark) {
   background-color: var(--accent-hover) !important;
@@ -133,7 +134,8 @@ html[data-accent] .hover\:bg-purple-100:hover:not(.logo-mark) {
   background-color: var(--accent-soft) !important;
 }
 html[data-accent] .from-violet-50:not(.logo-mark) {
-  --tw-gradient-from: var(--accent-50) !important;
+  background-image: none !important;
+  background-color: var(--accent-soft) !important;
 }
 
 /* -- borders / rings, lighter shades -- */
@@ -188,7 +190,8 @@ html[data-accent] .text-violet-900:not(.logo-mark) {
   color: var(--accent-900) !important;
 }
 html[data-accent] .to-violet-400:not(.logo-mark) {
-  --tw-gradient-to: var(--accent-400) !important;
+  background-image: none !important;
+  background-color: var(--accent) !important;
 }
 
 /* Theme */

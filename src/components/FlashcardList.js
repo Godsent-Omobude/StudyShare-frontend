@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Flame, X, ArrowLeft, ArrowRight, Check, Flag, PartyPopper } from "lucide-react";
 import Flashcard from "./Flashcard";
 import StreakCelebration from "./StreakCelebration";
 import api from "../api/api";
@@ -281,8 +282,8 @@ export default function FlashcardList({
             Card {currentIndex + 1} of {flashcards.length}
           </p>
           {typeof currentStreak === "number" && currentStreak > 0 && (
-            <p className="mt-1 text-xs font-black text-amber-600">
-              🔥 {currentStreak}-day streak
+            <p className="mt-1 flex items-center gap-1 text-xs font-black text-amber-600">
+              <Flame className="h-3.5 w-3.5" /> {currentStreak}-day streak
             </p>
           )}
         </div>
@@ -331,10 +332,12 @@ export default function FlashcardList({
       {streakCelebration?.type === "protected" && (
         <div className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
           <div>
-            <p className="text-sm font-black text-emerald-900">🔥 Streak protected!</p>
+            <p className="flex items-center gap-1.5 text-sm font-black text-emerald-900">
+              <Flame className="h-4 w-4" /> Streak protected!
+            </p>
             <p className="mt-1 text-xs leading-5 text-emerald-700">You already studied today. Come back tomorrow to extend it.</p>
           </div>
-          <button type="button" onClick={() => setStreakCelebration(null)} className="text-emerald-500 hover:text-emerald-700" aria-label="Dismiss">✕</button>
+          <button type="button" onClick={() => setStreakCelebration(null)} className="text-emerald-500 hover:text-emerald-700" aria-label="Dismiss"><X className="h-4 w-4" /></button>
         </div>
       )}
 
@@ -344,7 +347,7 @@ export default function FlashcardList({
             <p className="text-sm font-black text-slate-700">Almost there</p>
             <p className="mt-1 text-xs leading-5 text-slate-500">{streakCelebration.message || `Complete at least ${MIN_CARDS_FOR_STREAK} flashcards to count today toward your streak.`}</p>
           </div>
-          <button type="button" onClick={() => setStreakCelebration(null)} className="text-slate-400 hover:text-slate-600" aria-label="Dismiss">✕</button>
+          <button type="button" onClick={() => setStreakCelebration(null)} className="text-slate-400 hover:text-slate-600" aria-label="Dismiss"><X className="h-4 w-4" /></button>
         </div>
       )}
 
@@ -380,22 +383,22 @@ export default function FlashcardList({
           type="button"
           onClick={previous}
           disabled={currentIndex === 0 || isEvaluating}
-          className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          ← Previous
+          <ArrowLeft className="h-4 w-4" /> Previous
         </button>
 
         {canFinish ? (
           <button
             type="button"
             onClick={finishSession}
-            className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
           >
-            🏁 Finish Review
+            <Flag className="h-4 w-4" /> Finish Review
           </button>
         ) : sessionFinished ? (
-          <span className="rounded-xl bg-emerald-50 px-5 py-3 text-sm font-bold text-emerald-700">
-            ✓ Review Finished
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-5 py-3 text-sm font-bold text-emerald-700">
+            <Check className="h-4 w-4" /> Review Finished
           </span>
         ) : (
           <button
@@ -406,9 +409,9 @@ export default function FlashcardList({
               isEvaluating ||
               (mode === "test" && !evaluation)
             }
-            className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Next →
+            Next <ArrowRight className="h-4 w-4" />
           </button>
         )}
       </div>
@@ -444,7 +447,7 @@ export default function FlashcardList({
 
       {sessionFinished && mode === "normal" && (
         <div className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-          <p className="text-2xl">🎉</p>
+          <PartyPopper className="mx-auto h-8 w-8 text-emerald-600" />
           <h3 className="mt-2 text-xl font-black text-slate-900">
             Review complete
           </h3>
@@ -456,7 +459,7 @@ export default function FlashcardList({
 
       {testComplete && (
         <div className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-          <p className="text-2xl">🎉</p>
+          <PartyPopper className="mx-auto h-8 w-8 text-emerald-600" />
           <h3 className="mt-2 text-xl font-black text-slate-900">
             Test session complete
           </h3>
@@ -479,7 +482,7 @@ export default function FlashcardList({
                 className="mt-5 w-full rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
                 {resultSaved
-                  ? "✓ Practice Result Saved"
+                  ? (<span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4" /> Practice Result Saved</span>)
                   : isSavingResult
                   ? "Saving Result..."
                   : "Save Practice Result"}

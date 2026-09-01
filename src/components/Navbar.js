@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Menu } from "lucide-react";
 import api from "../api/api";
 
 export default function Navbar({ onMenuOpen, children }) {
@@ -68,7 +69,7 @@ export default function Navbar({ onMenuOpen, children }) {
             aria-expanded={false}
             className="group flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-brand-blue active:scale-95"
           >
-            <span className="text-[25px] leading-none transition group-hover:scale-95">☰</span>
+            <Menu className="h-[25px] w-[25px] transition group-hover:scale-95" strokeWidth={2} />
           </button>
 
           <div className="text-[25px] font-black tracking-[-0.04em] text-brand-blue sm:text-[28px]">

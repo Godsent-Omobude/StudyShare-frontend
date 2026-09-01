@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Check, FileText, PartyPopper } from "lucide-react";
 import api from "../api/api";
 
 const RATINGS = [
@@ -111,8 +112,8 @@ export default function StudyAll() {
   return (
     <main className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
-        <Link to="/my-flashcards" className="text-xs font-bold text-violet-600">
-          ← Back to My Flashcards
+        <Link to="/my-flashcards" className="inline-flex items-center gap-1 text-xs font-bold text-violet-600">
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to My Flashcards
         </Link>
 
         <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
@@ -128,13 +129,13 @@ export default function StudyAll() {
           <button
             type="button"
             onClick={toggleDueOnly}
-            className={`rounded-xl border px-4 py-3 text-sm font-bold transition ${
+            className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-3 text-sm font-bold transition ${
               dueOnly
                 ? "border-violet-600 bg-violet-600 text-white"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
-            {dueOnly ? "✓ Due cards only" : "Show due cards only"}
+            {dueOnly ? (<><Check className="h-4 w-4" /> Due cards only</>) : "Show due cards only"}
           </button>
         </div>
 
@@ -158,8 +159,8 @@ export default function StudyAll() {
           </div>
         ) : emptyState ? (
           <section className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-50 text-3xl text-violet-600">
-              ▤
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+              <FileText className="h-8 w-8" />
             </div>
             <h2 className="mt-5 text-xl font-black text-slate-900">{emptyState.title}</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">{emptyState.body}</p>
@@ -174,7 +175,7 @@ export default function StudyAll() {
           </section>
         ) : finished ? (
           <section className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-8 text-center">
-            <p className="text-2xl">🎉</p>
+            <PartyPopper className="mx-auto h-8 w-8 text-emerald-600" />
             <h2 className="mt-2 text-xl font-black text-slate-900">Deck complete</h2>
             <p className="mt-1 text-sm text-slate-600">
               You reviewed {reviewed} of {cards.length} cards. Each rating updated that

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FileText, Trash2, ArrowRight } from "lucide-react";
 
 export default function FlashcardSetCard({ set, onDelete }) {
   const count = set.flashcards?.length ?? 0;
@@ -9,8 +10,8 @@ export default function FlashcardSetCard({ set, onDelete }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-2xl text-violet-700">
-          ▤
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
+          <FileText className="h-6 w-6" />
         </div>
 
         <div className="min-w-0 flex-1">
@@ -29,16 +30,16 @@ export default function FlashcardSetCard({ set, onDelete }) {
           className="rounded-lg px-2 py-1 text-slate-400 hover:bg-red-50 hover:text-red-600"
           title="Delete flashcard set"
         >
-          ⋮
+          <Trash2 className="h-4 w-4" />
         </button>
       </div>
 
       <div className="mt-4 flex justify-end">
         <Link
           to={`/my-flashcards/${set.id}`}
-          className="rounded-xl border border-violet-200 px-4 py-2 text-xs font-bold text-violet-700 transition hover:bg-violet-50"
+          className="inline-flex items-center gap-1 rounded-xl border border-violet-200 px-4 py-2 text-xs font-bold text-violet-700 transition hover:bg-violet-50"
         >
-          Study →
+          Study <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import api from "../api/api";
 import usePushMessaging from "../hooks/usePushMessaging";
 import { unregisterPushDevice } from "../api/pushNotifications";
@@ -236,7 +237,7 @@ export default function Sidebar({ open, onClose }) {
             onClick={logout}
             className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-extrabold text-red-600 transition hover:bg-red-100"
           >
-            <span className="text-base">↪</span>
+            <LogOut className="h-4 w-4" />
             Log out
           </button>
         </div>

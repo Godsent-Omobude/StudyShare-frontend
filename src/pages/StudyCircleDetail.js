@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Download, Sparkles, MapPin, ArrowLeft, Infinity as InfinityIcon } from "lucide-react";
 import api from "../api/api";
 import CircleChat from "../components/CircleChat";
 import { createStudySocket } from "../api/socket";
@@ -190,7 +191,11 @@ function MaterialsTab({ circleId }) {
                   disabled={downloadingId === s.file.id}
                   className="mt-3 inline-block rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700 hover:bg-violet-100 disabled:opacity-50"
                 >
-                  {downloadingId === s.file.id ? "Downloading..." : "↓ Download"}
+                  {downloadingId === s.file.id ? "Downloading..." : (
+                    <span className="inline-flex items-center gap-1">
+                      <Download className="h-3.5 w-3.5" /> Download
+                    </span>
+                  )}
                 </button>
               )}
             </div>
@@ -234,9 +239,9 @@ function FlashcardsTab({ circleId }) {
         </p>
         <Link
           to={`/generate-flashcards?circleId=${circleId}`}
-          className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-violet-700"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-violet-700"
         >
-          ✦ Generate for Circle
+          <Sparkles className="h-4 w-4" /> Generate for Circle
         </Link>
       </div>
 
@@ -568,7 +573,7 @@ function JoinCodeManagement({ circleId }) {
       <div className="rounded-2xl bg-white p-3"><p className="text-[10px] font-bold uppercase text-slate-400">Current code</p><p className="mt-1 font-black tracking-[0.18em] text-slate-900">{settings.joinCode}</p><button type="button" onClick={() => navigator.clipboard?.writeText(settings.joinCode)} className="mt-2 text-xs font-bold text-violet-600">Copy code</button></div>
       <label className="rounded-2xl bg-white p-3"><span className="text-[10px] font-bold uppercase text-slate-400">Expiration</span><input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs" /><span className="mt-1 block text-[10px] text-slate-400">Leave empty for no expiration.</span></label>
       <label className="rounded-2xl bg-white p-3"><span className="text-[10px] font-bold uppercase text-slate-400">Maximum uses</span><input type="number" min="1" value={maxUses} onChange={(e) => setMaxUses(e.target.value)} placeholder="Unlimited" className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs" /><span className="mt-1 block text-[10px] text-slate-400">Successful joins only.</span></label>
-      <div className="rounded-2xl bg-white p-3"><p className="text-[10px] font-bold uppercase text-slate-400">Usage</p><p className="mt-1 text-sm font-black text-slate-900">{settings.uses}{settings.maxUses == null ? " / ∞" : ` / ${settings.maxUses}`}</p><p className="mt-1 text-[10px] text-slate-400">{settings.usesRemaining == null ? "Unlimited remaining" : `${settings.usesRemaining} remaining`}</p></div>
+      <div className="rounded-2xl bg-white p-3"><p className="text-[10px] font-bold uppercase text-slate-400">Usage</p><p className="mt-1 text-sm font-black text-slate-900">{settings.uses}{settings.maxUses == null ? <> / <InfinityIcon className="inline h-3.5 w-3.5 align-[-2px]" /></> : ` / ${settings.maxUses}`}</p><p className="mt-1 text-[10px] text-slate-400">{settings.usesRemaining == null ? "Unlimited remaining" : `${settings.usesRemaining} remaining`}</p></div>
     </div>
     <div className="mt-4 flex flex-wrap gap-2">
       <button type="button" onClick={save} disabled={saving} className="rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50">{saving ? "Saving..." : "Save settings"}</button>
@@ -763,7 +768,7 @@ function SessionsTab({ circleId }) {
                     {new Date(session.scheduledFor).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
                     {" · "}{session.durationMinutes} min
                   </p>
-                  {session.location && <p className="mt-1 text-xs text-slate-500">📍 {session.location}</p>}
+                  {session.location && <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-500"><MapPin className="h-3.5 w-3.5" /> {session.location}</p>}
                   {session.description && <p className="mt-2 text-sm text-slate-600">{session.description}</p>}
                   <p className="mt-2 text-[11px] text-slate-400">
                     Created by {session.createdByUser?.username} ·{" "}
@@ -1047,7 +1052,7 @@ export default function StudyCircleDetail() {
             to="/circles"
             className="mt-4 inline-block text-sm font-bold text-violet-600"
           >
-            ← Back to Study Circles
+            <span className="inline-flex items-center gap-1"><ArrowLeft className="h-3.5 w-3.5" /> Back to Study Circles</span>
           </Link>
         </div>
       </main>
@@ -1094,7 +1099,7 @@ export default function StudyCircleDetail() {
               to="/circles"
               className="mt-6 inline-block text-sm font-bold text-slate-500 hover:text-slate-700"
             >
-              ← Back to Study Circles
+              <span className="inline-flex items-center gap-1"><ArrowLeft className="h-3.5 w-3.5" /> Back to Study Circles</span>
             </Link>
           </div>
         </div>
@@ -1115,7 +1120,7 @@ export default function StudyCircleDetail() {
     <main className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
         <Link to="/circles" className="text-xs font-bold text-violet-600">
-          ← Back to Study Circles
+          <span className="inline-flex items-center gap-1"><ArrowLeft className="h-3.5 w-3.5" /> Back to Study Circles</span>
         </Link>
 
         <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
