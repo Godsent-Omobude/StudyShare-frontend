@@ -52,7 +52,7 @@ const SECTIONS = [
     title: "4. Reporting Copyright Infringement",
     body: [
       "If you believe that material available through Study2Gate infringes your copyright, you may contact us at:",
-      "Copyright Email: study2gate@gmail.com",
+      "Copyright Email: officialstudy2gate@gmail.com",
       "A copyright complaint should provide enough information for us to identify and investigate the material.",
       "Where reasonably possible, include:",
     ],
@@ -88,7 +88,7 @@ const SECTIONS = [
     title: "6. Counter-Notice or Dispute",
     body: [
       "If you believe that your material was removed or restricted incorrectly, you may contact us at:",
-      "Copyright Email: study2gate@gmail.com",
+      "Copyright Email: officialstudy2gate@gmail.com",
       "Your response should explain why you believe you have the right to use and distribute the material.",
       "We may request supporting information.",
       "Where appropriate, we may review the dispute and determine whether the material should remain restricted or be restored.",
@@ -148,7 +148,7 @@ const SECTIONS = [
   {
     title: "13. Contact",
     body: ["For copyright matters:"],
-    list: ["General Email: study2gate@gmail.com"],
+    list: ["General Email: officialstudy2gate@gmail.com"],
     after: [
       "Study2Gate may update this Copyright Policy when necessary to reflect changes in the law, the Service or our procedures.",
     ],

@@ -1,10 +1,5 @@
 import { Link } from "react-router-dom";
 
-// Baseline privacy policy reflecting what Study2Gate actually collects and
-// why, based on the current data model (see backend/prisma/schema.prisma).
-// This is a starting point, not legal sign-off — have it reviewed before
-// treating it as a finished compliance document, and keep it in sync as
-// features (and the data they collect) change.
 const SECTIONS = [
   {
     title: "Information we collect",

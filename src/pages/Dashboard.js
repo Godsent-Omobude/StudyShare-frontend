@@ -234,8 +234,6 @@ export default function Dashboard() {
     [files]
   );
 
-  // Builds the last 7 calendar days for the streak panel's day-dot row,
-  // marking a day "done" if it falls inside the current streak's window.
   const streakDayDots = useMemo(() => {
     const days = [];
     const today = new Date();

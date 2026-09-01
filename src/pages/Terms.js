@@ -300,10 +300,10 @@ const SECTIONS = [
     title: "23. Contact",
     body: ["For questions concerning these Terms:"],
     list: [
-      "Email: study2gate@gmail.com",
-      "Address: study2gate@gmail.com",
-      "Copyright complaints: study2gate@gmail.com",
-      "Privacy enquiries: study2gate@gmail.com",
+      "Email: officialstudy2gate@gmail.com",
+      "Address: officialstudy2gate@gmail.com",
+      "Copyright complaints: officialstudy2gate@gmail.com",
+      "Privacy enquiries: officialstudy2gate@gmail.com",
     ],
   },
 ];
