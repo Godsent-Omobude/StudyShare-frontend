@@ -15,7 +15,8 @@ import { registerPushDevice } from "../api/pushNotifications";
 //    show a native notification while a tab is open/focused, since the
 //    existing Socket.IO "notification:new" event already updates the
 //    NotificationBell in real time. Background/closed-tab notifications
-//    are handled entirely by public/firebase-messaging-sw.js.
+//    are handled entirely by public/sw.js (the app's merged service worker;
+//    see scripts/generate-firebase-sw.js).
 export default function usePushMessaging() {
   const navigate = useNavigate();
 

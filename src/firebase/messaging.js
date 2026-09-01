@@ -5,7 +5,14 @@
 import { getToken, onMessage, deleteToken } from "firebase/messaging";
 import { getMessagingIfSupported, isFirebaseConfigured, vapidKey } from "./config";
 
-const SERVICE_WORKER_URL = "/firebase-messaging-sw.js";
+// sw.js is the app's single service worker — it handles both PWA offline
+// caching and Firebase Cloud Messaging background push (see
+// scripts/generate-firebase-sw.js for why these had to be merged into one
+// file rather than two workers competing for the same "/" scope). It's
+// registered unconditionally on app load in src/index.js; this constant
+// is reused here so the FCM token request attaches to that same
+// registration instead of creating a second one.
+const SERVICE_WORKER_URL = "/sw.js";
 
 // One of: "unsupported" | "not-requested" | "granted" | "denied"
 export const getPermissionState = () => {
@@ -19,10 +26,13 @@ export const getPermissionState = () => {
 };
 
 const registerServiceWorker = async () => {
-  // Registered explicitly (rather than relying on CRA's default
-  // service-worker registration, which this project doesn't use) so we
-  // control exactly which file handles push, and so this call can be
-  // awaited before requesting a token.
+  // index.js already registers sw.js unconditionally on app load (for PWA
+  // installability, independent of notification permission). Calling
+  // register() again here with the same script URL/scope doesn't create a
+  // second worker — the browser resolves it to that same registration —
+  // but doing it explicitly here too means this call can still be awaited
+  // before requesting an FCM token, even if index.js's registration
+  // hasn't settled yet.
   return navigator.serviceWorker.register(SERVICE_WORKER_URL, { updateViaCache: "none" });
 };
 
@@ -112,8 +122,8 @@ export const revokeLocalToken = async () => {
 // as a native OS notification here — the existing Socket.IO-driven
 // NotificationBell already reflects them in real time while the app is
 // open, so showing a duplicate system popup on top would be redundant.
-// Background/closed-tab notifications are handled entirely by
-// public/firebase-messaging-sw.js instead. `callback` is invoked with the
+// Background/closed-tab notifications are handled entirely by public/sw.js
+// instead (see scripts/generate-firebase-sw.js). `callback` is invoked with the
 // raw FCM payload for callers that want to react to it further (e.g. a
 // lightweight in-app toast).
 export const listenForForegroundMessages = async (callback) => {

@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/static/css/main.a3a16535.css",
+    "main.js": "/static/js/main.c829abcc.js",
+    "static/media/study2gate-logo.png": "/static/media/study2gate-logo.b194edd6542557cf1d26.png",
+    "index.html": "/index.html",
+    "main.a3a16535.css.map": "/static/css/main.a3a16535.css.map",
+    "main.c829abcc.js.map": "/static/js/main.c829abcc.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a3a16535.css",
+    "static/js/main.c829abcc.js"
+  ]
+}

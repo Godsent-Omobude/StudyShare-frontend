@@ -25,6 +25,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import CopyrightPolicy from "./pages/CopyrightPolicy";
 import AcceptCopyrightPolicy from "./pages/AcceptCopyrightPolicy";
+import { applyDynamicManifest } from "./pwa/dynamicManifest";
 
 function ProtectedLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -69,6 +70,7 @@ function AppearanceManager() {
 
       document.documentElement.dataset.theme = theme;
       document.documentElement.dataset.accent = accent;
+      applyDynamicManifest(accent);
     };
 
     apply();

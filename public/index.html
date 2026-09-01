@@ -11,11 +11,21 @@
       content="Study2Gate - Academic resource sharing platform"
     />
 
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#1464d2" />
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- iOS home-screen install support (Safari ignores the manifest for
+         these; they need their own meta tags and a dedicated touch icon) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Study2Gate" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
 
     <!-- Browser tab / favicon -->
-    <link rel="icon" type="image/png" href="https://study-2gate.vercel.app/study2gate-logo.png" />
-    <link rel="apple-touch-icon" href="https://study-2gate.vercel.app/study2gate-logo.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
 
     <!-- Open Graph: WhatsApp, Facebook, LinkedIn, Discord, etc. -->
     <meta property="og:title" content="Study2Gate" />
