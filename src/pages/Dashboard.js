@@ -8,6 +8,7 @@ import ReportModal from "../components/ReportModal";
 export default function Dashboard() {
   const [files, setFiles] = useState([]);
   const [flashcardSets, setFlashcardSets] = useState([]);
+  const [flashcardSetsTotal, setFlashcardSetsTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("All");
   const [streak, setStreak] = useState({
@@ -87,9 +88,11 @@ export default function Dashboard() {
   const fetchFlashcards = async () => {
     try {
       const response = await api.get("/ai/flashcards");
-      setFlashcardSets(
-        Array.isArray(response.data) ? response.data.slice(0, 4) : []
-      );
+      const sets = Array.isArray(response.data?.flashcardSets)
+        ? response.data.flashcardSets
+        : [];
+      setFlashcardSetsTotal(sets.length);
+      setFlashcardSets(sets.slice(0, 4));
     } catch (error) {
       console.error("Unable to fetch flashcard sets.", error);
       setLoadError("Unable to load your flashcard sets right now. Please refresh the page.");
@@ -234,6 +237,8 @@ export default function Dashboard() {
     [files]
   );
 
+  // Builds the last 7 calendar days for the streak panel's day-dot row,
+  // marking a day "done" if it falls inside the current streak's window.
   const streakDayDots = useMemo(() => {
     const days = [];
     const today = new Date();
@@ -352,7 +357,7 @@ export default function Dashboard() {
                 <Layers className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
               </div>
               <p className="text-2xl font-black tracking-tight text-slate-900">
-                {flashcardSets.length}
+                {flashcardSetsTotal}
               </p>
               <p className="mt-1 text-xs font-semibold text-slate-500">
                 Flashcard Sets
