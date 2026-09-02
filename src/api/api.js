@@ -8,9 +8,18 @@ const normalizeApiBaseUrl = (url) => {
   return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
 };
 
-const API_URL = normalizeApiBaseUrl(
-  process.env.REACT_APP_API_URL || "https://studyshare-backend-1-vopy.onrender.com"
-);
+// In production, calls go to our own domain's /api path, which vercel.json
+// rewrites (proxies) to the Render backend. This makes the auth cookie
+// first-party instead of cross-site, which Safari's Intelligent Tracking
+// Prevention otherwise blocks (see Dashboard 0-flashcards / instant-logout
+// investigation). Local dev still talks to the backend directly since
+// there's no Vercel proxy running there.
+const API_URL =
+  process.env.NODE_ENV === "production"
+    ? "/api"
+    : normalizeApiBaseUrl(
+        process.env.REACT_APP_API_URL || "https://studyshare-backend-1-vopy.onrender.com"
+      );
 
 const api = axios.create({
   baseURL: API_URL,
