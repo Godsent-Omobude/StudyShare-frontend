@@ -148,7 +148,10 @@ const SECTIONS = [
   {
     title: "13. Contact",
     body: ["For copyright matters:"],
-    list: ["General Email: officialstudy2gate@gmail.com"],
+    list: [
+      "General Email: officialstudy2gate@gmail.com",
+      "Copyright Email: study2gatecopyright@gmail.com"
+    ],
     after: [
       "Study2Gate may update this Copyright Policy when necessary to reflect changes in the law, the Service or our procedures.",
     ],

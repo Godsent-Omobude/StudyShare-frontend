@@ -1,8 +1,5 @@
 import { Link } from "react-router-dom";
 
-// Rendered for any URL that doesn't match a known route. Previously the
-// app silently redirected unmatched paths to "/", which hides typos and
-// broken links instead of surfacing them.
 export default function NotFound() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
